@@ -71,8 +71,8 @@ func main() {
 	if *helpFlag {
 		flag.Usage()
 	} else if *versionFlag {
-        fmt.Printf("Version : %s\ngit commit SHA : %s \nBuilt on : %s\n", version, commit, date)
-    } else if flagCount == 0 {
+		fmt.Printf("Version : %s\ngit commit SHA : %s \nBuilt on : %s\n", version, commit, date)
+	} else if flagCount == 0 {
 		fmt.Println("Must provide atleast one url at end")
 		flag.Usage()
 		os.Exit(-1)
