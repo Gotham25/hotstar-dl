@@ -1,0 +1,13 @@
+#EXTM3U
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=167271,RESOLUTION=320x180,CODECS="avc1.66.30, mp4a.40.2",CLOSED-CAPTIONS=NONE
+https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/index_0_av.m3u8?null=0&id=AgCdLeTnMSxxookre1yyOZrUVjGsAjTrI2jaZKKjKzRKekEWQ81I2j3HSzMs2ZZcxJTgLWz%2f4cRk1A%3d%3d
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=327344,RESOLUTION=320x180,CODECS="avc1.66.30, mp4a.40.2",CLOSED-CAPTIONS=NONE
+https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/index_1_av.m3u8?null=0&id=AgCdLeTnMSxxookre1yyOZrUVjGsAjTrI2jaZKKjKzRKekEWQ81I2j3HSzMs2ZZcxJTgLWz%2f4cRk1A%3d%3d
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=552127,RESOLUTION=416x234,CODECS="avc1.66.30, mp4a.40.2",CLOSED-CAPTIONS=NONE
+https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/index_2_av.m3u8?null=0&id=AgCdLeTnMSxxookre1yyOZrUVjGsAjTrI2jaZKKjKzRKekEWQ81I2j3HSzMs2ZZcxJTgLWz%2f4cRk1A%3d%3d
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=960823,RESOLUTION=640x360,CODECS="avc1.66.30, mp4a.40.2",CLOSED-CAPTIONS=NONE
+https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/index_3_av.m3u8?null=0&id=AgCdLeTnMSxxookre1yyOZrUVjGsAjTrI2jaZKKjKzRKekEWQ81I2j3HSzMs2ZZcxJTgLWz%2f4cRk1A%3d%3d
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1472714,RESOLUTION=720x404,CODECS="avc1.66.30, mp4a.40.2",CLOSED-CAPTIONS=NONE
+https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/index_4_av.m3u8?null=0&id=AgCdLeTnMSxxookre1yyOZrUVjGsAjTrI2jaZKKjKzRKekEWQ81I2j3HSzMs2ZZcxJTgLWz%2f4cRk1A%3d%3d
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2188953,RESOLUTION=1280x720,CODECS="avc1.66.30, mp4a.40.2",CLOSED-CAPTIONS=NONE
+https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/index_5_av.m3u8?null=0&id=AgCdLeTnMSxxookre1yyOZrUVjGsAjTrI2jaZKKjKzRKekEWQ81I2j3HSzMs2ZZcxJTgLWz%2f4cRk1A%3d%3d
