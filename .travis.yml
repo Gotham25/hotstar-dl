@@ -1,0 +1,34 @@
+# .travis.yml
+
+language: go
+
+env:
+ global:
+  - MESSAGE="Tag Generated from TravisCI for build $TRAVIS_BUILD_NUMBER"
+  - CI_BUILD_NUMBER="$TRAVIS_BUILD_NUMBER"
+  - CI_PULL_REQUEST="$TRAVIS_PULL_REQUEST"
+  - CI_BRANCH="$TRAVIS_BRANCH"
+
+go:
+ - stable
+  
+before_install:
+ - go get github.com/mattn/goveralls
+
+before_script:
+ - go vet ./...
+ - chmod +x scripts/gofmt.sh
+ - ./scripts/gofmt.sh
+
+script:
+ - go test -v -count=1 -cover -coverprofile=coverage.out -coverpkg github.com/Gotham25/hotstar-dl/utils ./...
+
+after_success:
+ - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+
+deploy:
+ provider: script
+ script: curl -sL https://git.io/goreleaser | bash
+ api_key: $GITHUB_TOKEN
+ on:
+    tags: true
