@@ -22,7 +22,7 @@ func reSubMatchMap(r *regexp.Regexp, str string) map[string]string {
 
 //IsValidHotstarUrl validates if the given video url is a valid Hotstar url or not.
 func IsValidHotstarUrl(videoUrl string) (bool, string) {
-	var urlRegex = regexp.MustCompile(`((https|http)?://)?(www\.)?hotstar\.com/(?:.+?[/-])+(?P<videoId>\d{10})`)
+	var urlRegex = regexp.MustCompile(`(https|http?://)?(www|uk\.)?hotstar\.com/(?:.+?[/-])+(?P<videoId>\d{10})`)
 	if urlRegex.MatchString(videoUrl) {
 		match := reSubMatchMap(urlRegex, videoUrl)
 		return true, match["videoId"]

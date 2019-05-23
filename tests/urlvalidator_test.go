@@ -5,10 +5,24 @@ import (
 	"testing"
 )
 
-func TestIsValidHotstarUrl_ValidUrl(t *testing.T) {
+func TestIsValidHotstarUrl_ValidUrl1(t *testing.T) {
 	expectedVideoId := "1100003795"
 
 	isValid, actualVideoId := utils.IsValidHotstarUrl("http://www.hotstar.com/tv/chinnathambi/15301/chinnathambi-yearns-for-nandini/1100003795")
+
+	if !isValid {
+		t.Error("Expected", !isValid, "but got", isValid)
+	}
+
+	if expectedVideoId != actualVideoId {
+		t.Error("Expected", expectedVideoId, "but got", actualVideoId)
+	}
+}
+
+func TestIsValidHotstarUrl_ValidUrl2(t *testing.T) {
+	expectedVideoId := "1100020335"
+
+	isValid, actualVideoId := utils.IsValidHotstarUrl("https://uk.hotstar.com/tv/vijay-television-awards/s-203/the-main-event/1100020335")
 
 	if !isValid {
 		t.Error("Expected", !isValid, "but got", isValid)
