@@ -22,7 +22,7 @@ func GetMasterPlaybackUrls(playbackUriPageContents []byte) ([]string, error) {
 		//return masterPlaybackUrl, nil
 		playbackSets := results["playBackSets"].([]interface{})
 		masterPlaybackUrls := make([]string, len(playbackSets))
-		for _,v := range playbackSets {
+		for _, v := range playbackSets {
 			playbackSet := v.(map[string]interface{})
 			//fmt.Println("playbackSet: ", playbackSet["playbackUrl"].(string))
 			masterPlaybackUrls = append(masterPlaybackUrls, playbackSet["playbackUrl"].(string))
