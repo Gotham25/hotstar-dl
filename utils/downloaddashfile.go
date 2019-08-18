@@ -77,7 +77,7 @@ func DownloadDashFilesBatch(currentDirectoryPath, videoId string, vFormatCode st
 
 	fmt.Printf("\nDownloading DASH chunks to above directory\n")
 
-	dashFiles = make([]string, totalSegments+1)
+	dashFiles = make([]string, 0)
 
 	initSegmentUrl := getSegmentUrl(format["PLAYBACK-URL"], format["INIT-URL"])
 	initSegmentUrlValues := strings.Split(format["INIT-URL"], "/")

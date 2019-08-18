@@ -350,8 +350,6 @@ func runFfmpegCommand(ffmpegPath string, videoMetadata map[string]string, stream
 		log.Fatal("failed to capture stdout or stderr\n")
 	}
 
-	os.Exit(0)
-
 }
 
 //DownloadAudioOrVideo downloads the video for given video format and video url. It also adds metadata to it if needed. FFMPEG path and Output video file name can be customized.
@@ -394,7 +392,7 @@ func DownloadAudioOrVideo(videoUrl string, videoId string, vFormat string, userF
 	if isDashAV {
 		format := videoFormats[vFormat]
 		if outputFileName == "" {
-			outputFileName = fmt.Sprintf("%s__DASH_AV.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1))
+			outputFileName = fmt.Sprintf("%s_%s__DASH_AV.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1), videoId)
 		}
 		outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)
 
@@ -410,6 +408,7 @@ func DownloadAudioOrVideo(videoUrl string, videoId string, vFormat string, userF
 			os.Exit(-1)
 		} else {
 			fmt.Printf("\nTemp directory %s removed\n", tempDashFileDir)
+			os.Exit(0)
 		}
 	} else {
 		if videoFormat, isValidFormat := videoFormats[vFormat]; isValidFormat {
@@ -417,7 +416,7 @@ func DownloadAudioOrVideo(videoUrl string, videoId string, vFormat string, userF
 			if streamUrl, isStreamUrlAvailable := videoFormat["STREAM-URL"]; isStreamUrlAvailable {
 
 				if outputFileName == "" {
-					outputFileName = fmt.Sprintf("%s.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1))
+					outputFileName = fmt.Sprintf("%s-%d.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1), videoId)
 				}
 
 				outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)
@@ -428,7 +427,7 @@ func DownloadAudioOrVideo(videoUrl string, videoId string, vFormat string, userF
 				}
 
 				runFfmpegCommand(ffmpegPath, videoMetadata, streamUrl, nil, metadataFlag, outputFileName, false)
-
+				os.Exit(0)
 			} else {
 				fmt.Println("The STREAM-URL is not available. Please try again")
 				os.Exit(-3)
