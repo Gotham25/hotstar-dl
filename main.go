@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Gotham25/hotstar-dl/utils"
 	"os"
 	"strings"
+
+	"github.com/Gotham25/hotstar-dl/utils"
 )
 
 //Build version info vars injected by goreleaser
@@ -64,6 +65,25 @@ func init() {
 	}
 }
 
+func isDashVideoFormatCode(formatCode string) bool {
+	if strings.HasPrefix(formatCode, "dash-audio-") {
+		return true
+	} else if strings.HasPrefix(formatCode, "dash-video-") {
+		return true
+	} else {
+		return false
+	}
+}
+
+func hasValidFormatPrefix(formatCode string) bool {
+	if strings.HasPrefix(formatCode, "hls-") {
+		return true
+	} else if isDashVideoFormatCode(formatCode) {
+		return true
+	}
+	return false
+}
+
 func main() {
 
 	flag.Parse()
@@ -92,13 +112,15 @@ func main() {
 				utils.ListVideoFormats(videoUrl, videoId, *titleFlag, *descriptionFlag)
 
 			} else if *formatFlag != "" {
-				if !strings.HasPrefix(*formatFlag, "hls-") {
+				if !hasValidFormatPrefix(*formatFlag) {
 					fmt.Println("Invalid format specified")
 					os.Exit(-1)
 				} else {
-
-					utils.DownloadVideo(videoUrl, videoId, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag)
-
+					if isDashVideoFormatCode(*formatFlag) {
+						utils.DownloadAudioOrVideo(videoUrl, videoId, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, true)
+					} else {
+						utils.DownloadAudioOrVideo(videoUrl, videoId, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+					}
 				}
 			} else {
 				//TODO: Check for other flags if associated with url if any

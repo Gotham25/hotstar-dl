@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 var playbackUriRetryCount = 0
@@ -97,7 +99,18 @@ func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string
 
 		metaDataMap := make(map[string]string)
 		populateMetaDataMapWithMetadata(metaDataMap, metadata)
-		return playbackUri, metaDataMap, nil
+		metaDataMap["playbackUri"] = playbackUri
+		var playbackUri2 strings.Builder
+
+		playbackUri2.WriteString(fmt.Sprintf("https://api.hotstar.com/h/v2/play/in/contents/%s?", videoId))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "desiredConfig", "encryption:plain;ladder:phone,tv;package:hls,dash"))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "client", "mweb"))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "clientVersion", "6.18.0"))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "deviceId", uuid.New().String()))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "osName", "Windows"))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s", "osVersion", "10"))
+		
+		return playbackUri2.String(), metaDataMap, nil
 
 	}
 
