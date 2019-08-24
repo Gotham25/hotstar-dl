@@ -47,7 +47,8 @@ func GetDateStr(timeFloat64 float64) string {
 	return time.Unix(0, timeMillis*int64(time.Millisecond)).In(location).String()
 }
 
-func makeRange(min, max int) []int {
+//MakeRange generates a range of numbers for the given range
+func MakeRange(min, max int) []int {
 	contents := make([]int, max-min+1)
 	for index := range contents {
 		contents[index] = min + index

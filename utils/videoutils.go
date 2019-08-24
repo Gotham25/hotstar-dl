@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/google/uuid"
 )
 
 var videoFormatsRetryCount = 0
@@ -44,9 +46,7 @@ func GetVideoFormats(videoUrl string, videoId string) (map[string]map[string]str
 
 	videoUrlContent := fmt.Sprintf("%s", videoUrlContentBytes)
 
-	playbackUri, videoMetadata, err := GetPlaybackUri(videoUrlContent, videoUrl, videoId)
-
-	//fmt.Println("DEBUG: playbackUri:", playbackUri)
+	playbackUri, videoMetadata, err := GetPlaybackUri(videoUrlContent, videoUrl, videoId, uuid.New().String())
 
 	if err != nil {
 		if videoFormatsRetryCount+1 < 10 {
@@ -61,13 +61,11 @@ func GetVideoFormats(videoUrl string, videoId string) (map[string]map[string]str
 
 	if drmProtected, isDrmKeyAvailable := videoMetadata["drmProtected"]; isDrmKeyAvailable {
 		if drmProtected == "true" {
-			return nil, nil, fmt.Errorf("The content is DRM Protected.")
+			return nil, nil, fmt.Errorf("the content is DRM Protected")
 		}
 	}
 
 	playbackUriContentBytes, err := MakeGetRequest(playbackUri, requestHeaders)
-
-	//fmt.Println("DEBUG: playbackUriContentBytes: ", string(playbackUriContentBytes))
 
 	if err != nil {
 		if videoFormatsRetryCount+1 < 10 {
@@ -92,13 +90,10 @@ func GetVideoFormats(videoUrl string, videoId string) (map[string]map[string]str
 		//log.Fatal(fmt.Errorf("Error occurred : %s", err))
 	}
 
-	//fmt.Println("\nmasterPlaybackUrls: ", masterPlaybackUrls, "\n")
-
 	for _, masterPlaybackUrl := range masterPlaybackUrls {
 
 		if masterPlaybackUrl != "" {
 
-			//fmt.Println("\nmasterPlaybackUrl: ", masterPlaybackUrl, "\n")
 			var queryParams string
 			masterPlaybackUrlQueryParam := strings.Split(masterPlaybackUrl, "?")
 
@@ -122,16 +117,12 @@ func GetVideoFormats(videoUrl string, videoId string) (map[string]map[string]str
 					return nil, nil, err
 				}
 
-				//fmt.Println("\masterPlaybackPageContentsM3u8Bytes: ", string(masterPlaybackPageContentsM3u8Bytes), "  queryParams: ", queryParams, "\n")
-
 				for fid, formatsList := range ParseM3u8Content(fmt.Sprintf("%s", masterPlaybackPageContentsM3u8Bytes), masterPlaybackUrl, queryParams) {
 					videoFormatsTemp[fid] = append(videoFormatsTemp[fid], formatsList)
 				}
 			} else {
 
-				//fmt.Println("DEBUG: Dash format encountered: ", masterPlaybackUrl)
 				masterPlaybackPageContentsMpdBytes, err := MakeGetRequest(masterPlaybackUrl, requestHeaders)
-				//fmt.Println("DEBUG: Dash format masterPlaybackPageContentsMpdBytes: ", string(masterPlaybackPageContentsMpdBytes))
 
 				if err != nil {
 
@@ -145,7 +136,9 @@ func GetVideoFormats(videoUrl string, videoId string) (map[string]map[string]str
 					return nil, nil, err
 				}
 
-				for avType, formatsList := range GetDashFormats(masterPlaybackPageContentsMpdBytes, masterPlaybackUrl) {
+				dFormats := GetDashFormats(masterPlaybackPageContentsMpdBytes, masterPlaybackUrl)
+
+				for avType, formatsList := range dFormats {
 					for formatCode, formatInfo := range formatsList {
 						if avType == "video" {
 							videoDashFormatsTemp[formatCode] = append(videoDashFormatsTemp[formatCode], formatInfo)
@@ -159,18 +152,7 @@ func GetVideoFormats(videoUrl string, videoId string) (map[string]map[string]str
 
 		}
 
-		//log.Fatal(fmt.Errorf("Error occurred : %s", err))
-
-		//fmt.Printf("\nmasterPlaybackPageContentsBytes : \n%s\n", masterPlaybackPageContentsBytes)
-
-		//return fmt.Sprintf("%s", masterPlaybackPageContentsBytes)
-
 	}
-
-	//fmt.Println("\nvideoFormatsTemp: ", videoFormatsTemp, "\n")
-
-	//fmt.Println("videoDashFormatsTemp : ", len(videoDashFormatsTemp))
-	//fmt.Println("audioDashFormatsTemp : ", len(audioDashFormatsTemp))
 
 	for fid, formatsList := range videoFormatsTemp {
 		if len(formatsList) == 1 {
@@ -416,7 +398,7 @@ func DownloadAudioOrVideo(videoUrl string, videoId string, vFormat string, userF
 			if streamUrl, isStreamUrlAvailable := videoFormat["STREAM-URL"]; isStreamUrlAvailable {
 
 				if outputFileName == "" {
-					outputFileName = fmt.Sprintf("%s-%d.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1), videoId)
+					outputFileName = fmt.Sprintf("%s-%s.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1), videoId)
 				}
 
 				outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)

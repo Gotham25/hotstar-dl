@@ -2,11 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"github.com/Gotham25/hotstar-dl/utils"
 	"io/ioutil"
 	"log"
 	"reflect"
 	"testing"
+
+	"github.com/Gotham25/hotstar-dl/utils"
 )
 
 func getExpectedFormats1(kForm string, programId string, closedCaptions string, bandwidth string, codecs string, resolution string, streamUrl string) map[string]string {
@@ -86,7 +87,7 @@ func TestParseM3u8Content1(t *testing.T) {
 
 	expectedVideoFormats := getExpectedVideoFormats1()
 
-	m3u8Content, err := ioutil.ReadFile("resources/m3u8Content1.txt")
+	m3u8Content, err := ioutil.ReadFile("resources/m3u8Content1.m3u8")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,7 +106,7 @@ func TestParseM3u8Content2(t *testing.T) {
 
 	expectedVideoFormats := getExpectedVideoFormats2()
 
-	m3u8Content, err := ioutil.ReadFile("resources/m3u8Content2.txt")
+	m3u8Content, err := ioutil.ReadFile("resources/m3u8Content2.m3u8")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,7 +125,7 @@ func TestParseM3u8Content3(t *testing.T) {
 
 	expectedVideoFormats := getExpectedVideoFormats3()
 
-	m3u8Content, err := ioutil.ReadFile("resources/m3u8Content3.txt")
+	m3u8Content, err := ioutil.ReadFile("resources/m3u8Content3.m3u8")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,9 +1,10 @@
 package tests
 
 import (
-	"github.com/Gotham25/hotstar-dl/utils"
 	"reflect"
 	"testing"
+
+	"github.com/Gotham25/hotstar-dl/utils"
 )
 
 func TestCopyMap(t *testing.T) {
@@ -39,4 +40,13 @@ func TestGetDateStr_Padded(t *testing.T) {
 		t.Error("Expected", expectedDate, " but got", actualDate)
 	}
 
+}
+
+func TestMakeRange(t *testing.T) {
+	expectedRange := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+	actualRange := utils.MakeRange(1, 13)
+
+	if !reflect.DeepEqual(expectedRange, actualRange) {
+		t.Error("Expected", expectedRange, " but got", actualRange)
+	}
 }

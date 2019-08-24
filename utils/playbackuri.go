@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 var playbackUriRetryCount = 0
@@ -53,7 +51,7 @@ func populateMetaDataMapWithMetadata(metaDataMap map[string]string, metadata map
 }
 
 //GetPlaybackUri gets the playback uri from the metadata in the given page contents.
-func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string) (string, map[string]string, error) {
+func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string, uuid string) (string, map[string]string, error) {
 	//TODO: show retry info upon debug level
 
 	var metadata = make(map[string]interface{})
@@ -75,7 +73,7 @@ func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string
 				if !isCastOk && (playbackUriRetryCount+1 < 5) {
 					playbackUriRetryCount++
 					//fmt.Printf("GetPlaybackUri: cast to map[string]interface{} failed. retrying count : #%d\n", playbackUriRetryCount)
-					return GetPlaybackUri(videoUrlPageContents, videoUrl, videoId)
+					return GetPlaybackUri(videoUrlPageContents, videoUrl, videoId, uuid)
 				}
 
 				initialState := root["initialState"].(map[string]interface{})
@@ -106,7 +104,7 @@ func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string
 		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "desiredConfig", "encryption:plain;ladder:phone,tv;package:hls,dash"))
 		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "client", "mweb"))
 		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "clientVersion", "6.18.0"))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "deviceId", uuid.New().String()))
+		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "deviceId", uuid))
 		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "osName", "Windows"))
 		playbackUri2.WriteString(fmt.Sprintf("%s=%s", "osVersion", "10"))
 

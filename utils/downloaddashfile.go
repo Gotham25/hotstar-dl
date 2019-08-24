@@ -87,7 +87,7 @@ func DownloadDashFilesBatch(currentDirectoryPath, videoId string, vFormatCode st
 	if initFileErr != nil {
 		raiseFileDownloadError(initFileErr)
 	}
-	for _, segmentNum := range makeRange(1, totalSegments) {
+	for _, segmentNum := range MakeRange(1, totalSegments) {
 		streamUrl := strings.Replace(format["STREAM-URL"], "$Number$", fmt.Sprintf("%d", segmentNum), -1)
 		streamUrlValues := strings.Split(streamUrl, "/")
 		segmentUrl := getSegmentUrl(format["PLAYBACK-URL"], streamUrl)
