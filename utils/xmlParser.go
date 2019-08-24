@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+//SegmentTemplate struct contains info about segments
 type SegmentTemplate struct {
 	Duration       string `xml:"duration,attr"`
 	Initialization string `xml:"initialization,attr"`
@@ -17,23 +18,26 @@ type SegmentTemplate struct {
 	Timescale      string `xml:"timescale,attr"`
 }
 
+//AudioChannelConfiguration struct contains config of channel
 type AudioChannelConfiguration struct {
-	SchemeIdUri string `xml:"schemeIdUri,attr"`
+	SchemeIDURI string `xml:"schemeIdUri,attr"`
 	Value       string `xml:"value,attr"`
 }
 
+//Representation struct contains
 type Representation struct {
 	Bandwidth                 string `xml:"bandwidth,attr"`
 	Codecs                    string `xml:"codecs,attr"`
 	FrameRate                 string `xml:"frameRate,attr"`
 	Height                    string `xml:"height,attr"`
-	Id                        string `xml:"id,attr"`
+	ID                        string `xml:"id,attr"`
 	ScanType                  string `xml:"scanType,attr"`
 	Width                     string `xml:"width,attr"`
 	AudioSamplingRate         string `xml:"audioSamplingRate,attr"`
 	AudioChannelConfiguration string `xml:"AudioChannelConfiguration"`
 }
 
+//AdaptationSet struct contains
 type AdaptationSet struct {
 	MaxHeight        string           `xml:"maxHeight,attr"`
 	MaxWidth         string           `xml:"maxWidth,attr"`
@@ -44,6 +48,7 @@ type AdaptationSet struct {
 	Representations  []Representation `xml:"Representation"`
 }
 
+//MPD struct contains
 type MPD struct {
 	MediaPresentationDuration string          `xml:"mediaPresentationDuration,attr"`
 	MinBufferTime             string          `xml:"minBufferTime,attr"`
@@ -52,7 +57,7 @@ type MPD struct {
 	Period                    []AdaptationSet `xml:"Period>AdaptationSet"`
 }
 
-func getUrl(text string, old string, new string) string {
+func getURL(text string, old string, new string) string {
 	return strings.Replace(text, old, new, -1)
 }
 
@@ -65,11 +70,12 @@ func getParsedTimeUnit(unit string) (float64, error) {
 	return strconv.ParseFloat(unit, 64)
 }
 
-func GetDashFormats(data []byte, masterPlaybackUrl string) map[string]map[string]map[string]string {
+//GetDashFormats gives the dash formats for any given dash URL
+func GetDashFormats(data []byte, masterPlaybackURL string) map[string]map[string]map[string]string {
 	var mpd MPD
 	var totalSeconds float64
 	var totalSegments int
-	var audio_or_video = make(map[string]map[string]map[string]string)
+	var audioOrVideo = make(map[string]map[string]map[string]string)
 	xml.Unmarshal(data, &mpd)
 	mediaPresentationDurationRegex := regexp.MustCompile(`PT((\d+)H)?((\d+)M)?((\d+)\.(\d+)S)?`)
 	matches := mediaPresentationDurationRegex.FindAllStringSubmatch(mpd.MediaPresentationDuration, -1)
@@ -90,9 +96,9 @@ func GetDashFormats(data []byte, masterPlaybackUrl string) map[string]map[string
 				timeScale, _ := strconv.ParseFloat(adaptationSet.SegTemplate.Timescale, 64)
 				segmentScale := duration / timeScale
 				totalSegments = int(math.Ceil(totalSeconds / segmentScale))
-				audio_or_video["video"] = make(map[string]map[string]string)
-				var initializationUrl = adaptationSet.SegTemplate.Initialization
-				var mediaUrl = adaptationSet.SegTemplate.Media
+				audioOrVideo["video"] = make(map[string]map[string]string)
+				var initializationURL = adaptationSet.SegTemplate.Initialization
+				var mediaURL = adaptationSet.SegTemplate.Media
 				for _, representation := range adaptationSet.Representations {
 					var format = make(map[string]string)
 					bandwidth, _ := strconv.Atoi(representation.Bandwidth)
@@ -105,19 +111,19 @@ func GetDashFormats(data []byte, masterPlaybackUrl string) map[string]map[string
 					format["MIME-TYPE"] = adaptationSet.MimeType
 					format["STREAM"] = "video only"
 					format["TOTAL-SEGMENTS"] = fmt.Sprintf("%d", totalSegments)
-					format["INIT-URL"] = getUrl(initializationUrl, "$RepresentationID$", representation.Id)
-					format["STREAM-URL"] = getUrl(mediaUrl, "$RepresentationID$", representation.Id)
-					format["PLAYBACK-URL"] = masterPlaybackUrl
-					audio_or_video["video"][fmt.Sprintf("%dk", bandwidth/1000)] = format
+					format["INIT-URL"] = getURL(initializationURL, "$RepresentationID$", representation.ID)
+					format["STREAM-URL"] = getURL(mediaURL, "$RepresentationID$", representation.ID)
+					format["PLAYBACK-URL"] = masterPlaybackURL
+					audioOrVideo["video"][fmt.Sprintf("%dk", bandwidth/1000)] = format
 				}
 			case "audio/mp4":
 				duration, _ := strconv.ParseFloat(adaptationSet.SegTemplate.Duration, 64)
 				timeScale, _ := strconv.ParseFloat(adaptationSet.SegTemplate.Timescale, 64)
 				segmentScale := duration / timeScale
 				totalSegments = int(math.Ceil(totalSeconds / segmentScale))
-				audio_or_video["audio"] = make(map[string]map[string]string)
-				var initializationUrl = adaptationSet.SegTemplate.Initialization
-				var mediaUrl = adaptationSet.SegTemplate.Media
+				audioOrVideo["audio"] = make(map[string]map[string]string)
+				var initializationURL = adaptationSet.SegTemplate.Initialization
+				var mediaURL = adaptationSet.SegTemplate.Media
 				for _, representation := range adaptationSet.Representations {
 					var format = make(map[string]string)
 					bandwidth, _ := strconv.Atoi(representation.Bandwidth)
@@ -129,10 +135,10 @@ func GetDashFormats(data []byte, masterPlaybackUrl string) map[string]map[string
 					format["STREAM"] = "audio only"
 					format["TOTAL-SEGMENTS"] = fmt.Sprintf("%d", totalSegments)
 					format["SAMPLING-RATE"] = fmt.Sprintf("(%s Hz)", representation.AudioSamplingRate)
-					format["INIT-URL"] = getUrl(initializationUrl, "$RepresentationID$", representation.Id)
-					format["STREAM-URL"] = getUrl(mediaUrl, "$RepresentationID$", representation.Id)
-					format["PLAYBACK-URL"] = masterPlaybackUrl
-					audio_or_video["audio"][fmt.Sprintf("%dk", bandwidth/1000)] = format
+					format["INIT-URL"] = getURL(initializationURL, "$RepresentationID$", representation.ID)
+					format["STREAM-URL"] = getURL(mediaURL, "$RepresentationID$", representation.ID)
+					format["PLAYBACK-URL"] = masterPlaybackURL
+					audioOrVideo["audio"][fmt.Sprintf("%dk", bandwidth/1000)] = format
 				}
 			default:
 				fmt.Println("Unsupported format")
@@ -141,5 +147,5 @@ func GetDashFormats(data []byte, masterPlaybackUrl string) map[string]map[string
 
 	}
 
-	return audio_or_video
+	return audioOrVideo
 }

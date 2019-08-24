@@ -5,11 +5,11 @@ import (
 	"fmt"
 )
 
-//GetMasterPlaybackUrls gets master playback urls from playback uri page contents.
-func GetMasterPlaybackUrls(playbackUriPageContents []byte) ([]string, error) {
+//GetMasterPlaybackURLs gets master playback urls from playback uri page contents.
+func GetMasterPlaybackURLs(playbackURIPageContents []byte) ([]string, error) {
 
 	var result map[string]interface{}
-	json.Unmarshal(playbackUriPageContents, &result)
+	json.Unmarshal(playbackURIPageContents, &result)
 
 	statusCode := int(result["statusCodeValue"].(float64))
 

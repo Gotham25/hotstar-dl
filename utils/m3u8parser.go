@@ -8,7 +8,7 @@ import (
 )
 
 //ParseM3u8Content parses given m3u8Content content and returns map of map of string containing video format list.
-func ParseM3u8Content(m3u8Content string, playbackUrl string, playbackUrlData string) map[string]map[string]string {
+func ParseM3u8Content(m3u8Content string, playbackURL string, playbackURLData string) map[string]map[string]string {
 
 	var m3u8Info map[string]string
 	var urlFormats = make(map[string]map[string]string)
@@ -46,23 +46,23 @@ func ParseM3u8Content(m3u8Content string, playbackUrl string, playbackUrlData st
 
 				m3u8Info["K-FORM"] = kForm
 
-				streamUrl := line
+				streamURL := line
 
 				if !strings.HasPrefix(line, "http") {
-					streamUrl = strings.Replace(playbackUrl, "master.m3u8", line, -1)
+					streamURL = strings.Replace(playbackURL, "master.m3u8", line, -1)
 				}
 
-				if !strings.Contains(streamUrl, "~acl=/*~hmac") {
-					if !strings.Contains(streamUrl, "?") {
-						streamUrl += "?"
+				if !strings.Contains(streamURL, "~acl=/*~hmac") {
+					if !strings.Contains(streamURL, "?") {
+						streamURL += "?"
 					}
-					streamUrl += ("&" + playbackUrlData)
+					streamURL += ("&" + playbackURLData)
 				}
 
 				re := regexp.MustCompile(`\r`)
-				streamUrl = re.ReplaceAllString(streamUrl, "")
+				streamURL = re.ReplaceAllString(streamURL, "")
 
-				m3u8Info["STREAM-URL"] = streamUrl
+				m3u8Info["STREAM-URL"] = streamURL
 
 				urlFormats[fmt.Sprintf("hls-%d", kFactor)] = CopyMap(m3u8Info)
 

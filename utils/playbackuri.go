@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var playbackUriRetryCount = 0
+var playbackURIRetryCount = 0
 
 func populateMetaDataMapWithMetadata(metaDataMap map[string]string, metadata map[string]interface{}) {
 	for k1, v1 := range metadata {
@@ -50,13 +50,13 @@ func populateMetaDataMapWithMetadata(metaDataMap map[string]string, metadata map
 	}
 }
 
-//GetPlaybackUri gets the playback uri from the metadata in the given page contents.
-func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string, uuid string) (string, map[string]string, error) {
+//GetPlaybackURI gets the playback uri from the metadata in the given page contents.
+func GetPlaybackURI(videoURLPageContents string, videoURL string, videoID string, uuid string) (string, map[string]string, error) {
 	//TODO: show retry info upon debug level
 
 	var metadata = make(map[string]interface{})
 	appStateSearchRegex := *regexp.MustCompile(`<script>window.APP_STATE=(.+?)</script>`)
-	appStateSearchMatch := appStateSearchRegex.FindAllStringSubmatch(videoUrlPageContents, -1)
+	appStateSearchMatch := appStateSearchRegex.FindAllStringSubmatch(videoURLPageContents, -1)
 
 	if len(appStateSearchMatch) > 0 {
 
@@ -65,15 +65,15 @@ func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string
 
 		for k := range result {
 
-			//videoId := helper.After(k, "/")
-			if len(videoId) != 0 && strings.Contains(videoUrl, videoId) {
+			//videoID := helper.After(k, "/")
+			if len(videoID) != 0 && strings.Contains(videoURL, videoID) {
 
 				root, isCastOk := result[k].(map[string]interface{})
 
-				if !isCastOk && (playbackUriRetryCount+1 < 5) {
-					playbackUriRetryCount++
-					//fmt.Printf("GetPlaybackUri: cast to map[string]interface{} failed. retrying count : #%d\n", playbackUriRetryCount)
-					return GetPlaybackUri(videoUrlPageContents, videoUrl, videoId, uuid)
+				if !isCastOk && (playbackURIRetryCount+1 < 5) {
+					playbackURIRetryCount++
+					//fmt.Printf("GetPlaybackURI: cast to map[string]interface{} failed. retrying count : #%d\n", playbackURIRetryCount)
+					return GetPlaybackURI(videoURLPageContents, videoURL, videoID, uuid)
 				}
 
 				initialState := root["initialState"].(map[string]interface{})
@@ -93,22 +93,22 @@ func GetPlaybackUri(videoUrlPageContents string, videoUrl string, videoId string
 		return "", nil, errors.New("Invalid appState JSON. Cannot retrieve playbackUri")
 	}
 
-	if playbackUri, ok := metadata["playbackUri"].(string); ok {
+	if playbackURI, ok := metadata["playbackUri"].(string); ok {
 
 		metaDataMap := make(map[string]string)
 		populateMetaDataMapWithMetadata(metaDataMap, metadata)
-		metaDataMap["playbackUri"] = playbackUri
-		var playbackUri2 strings.Builder
+		metaDataMap["playbackUri"] = playbackURI
+		var playbackURI2 strings.Builder
 
-		playbackUri2.WriteString(fmt.Sprintf("https://api.hotstar.com/h/v2/play/in/contents/%s?", videoId))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "desiredConfig", "encryption:plain;ladder:phone,tv;package:hls,dash"))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "client", "mweb"))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "clientVersion", "6.18.0"))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "deviceId", uuid))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s&", "osName", "Windows"))
-		playbackUri2.WriteString(fmt.Sprintf("%s=%s", "osVersion", "10"))
+		playbackURI2.WriteString(fmt.Sprintf("https://api.hotstar.com/h/v2/play/in/contents/%s?", videoID))
+		playbackURI2.WriteString(fmt.Sprintf("%s=%s&", "desiredConfig", "encryption:plain;ladder:phone,tv;package:hls,dash"))
+		playbackURI2.WriteString(fmt.Sprintf("%s=%s&", "client", "mweb"))
+		playbackURI2.WriteString(fmt.Sprintf("%s=%s&", "clientVersion", "6.18.0"))
+		playbackURI2.WriteString(fmt.Sprintf("%s=%s&", "deviceId", uuid))
+		playbackURI2.WriteString(fmt.Sprintf("%s=%s&", "osName", "Windows"))
+		playbackURI2.WriteString(fmt.Sprintf("%s=%s", "osVersion", "10"))
 
-		return playbackUri2.String(), metaDataMap, nil
+		return playbackURI2.String(), metaDataMap, nil
 
 	}
 

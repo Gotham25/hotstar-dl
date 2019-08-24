@@ -13,8 +13,8 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 
 	return map[string]map[string]map[string]string{
 
-		"audio": map[string]map[string]string{
-			"33k": map[string]string{
+		"audio": {
+			"33k": {
 				"MIME-TYPE":      "audio/mp4",
 				"STREAM":         "audio only",
 				"STREAM-URL":     "audio/und/mp4a/1/seg-$Number$.m4s",
@@ -27,7 +27,7 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 				"K-FORM":         "DASH audio 33k",
 				"CODECS":         "m4a_dash container, mp4a.40.2",
 			},
-			"65k": map[string]string{
+			"65k": {
 				"STREAM":         "audio only",
 				"TOTAL-SEGMENTS": "317",
 				"STREAM-URL":     "audio/und/mp4a/2/seg-$Number$.m4s",
@@ -42,8 +42,8 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 			},
 		},
 
-		"video": map[string]map[string]string{
-			"96k": map[string]string{
+		"video": {
+			"96k": {
 				"MIME-TYPE":      "video/mp4",
 				"STREAM":         "video only",
 				"TOTAL-SEGMENTS": "317",
@@ -57,7 +57,7 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 				"BANDWIDTH":      "96191",
 				"K-FORM":         "DASH video 96k",
 			},
-			"163k": map[string]string{
+			"163k": {
 				"FRAME-RATE":     "25",
 				"MIME-TYPE":      "video/mp4",
 				"INIT-URL":       "video/avc1/2/init.mp4",
@@ -71,7 +71,7 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 				"BANDWIDTH":      "163093",
 				"K-FORM":         "DASH video 163k",
 			},
-			"242k": map[string]string{
+			"242k": {
 				"BANDWIDTH":      "242217",
 				"CODECS":         "mp4_dash container, avc1.4D401E",
 				"FRAME-RATE":     "25",
@@ -85,7 +85,7 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 				"INIT-URL":       "video/avc1/3/init.mp4",
 				"STREAM-URL":     "video/avc1/3/seg-$Number$.m4s",
 			},
-			"475k": map[string]string{
+			"475k": {
 				"K-FORM":         "DASH video 475k",
 				"K-FORM-NUMBER":  "475",
 				"TOTAL-SEGMENTS": "317",
@@ -99,7 +99,7 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 				"STREAM":         "video only",
 				"CODECS":         "mp4_dash container, avc1.4D401F",
 			},
-			"822k": map[string]string{
+			"822k": {
 				"BANDWIDTH":      "822677",
 				"K-FORM-NUMBER":  "822",
 				"CODECS":         "mp4_dash container, avc1.640028",
@@ -113,7 +113,7 @@ func getExpectedDashFormats3() map[string]map[string]map[string]string {
 				"INIT-URL":       "video/avc1/5/init.mp4",
 				"STREAM-URL":     "video/avc1/5/seg-$Number$.m4s",
 			},
-			"1847k": map[string]string{
+			"1847k": {
 				"K-FORM-NUMBER":  "1847",
 				"RESOLUTION":     "1920x1080",
 				"MIME-TYPE":      "video/mp4",
@@ -136,8 +136,8 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 
 	return map[string]map[string]map[string]string{
 
-		"audio": map[string]map[string]string{
-			"33k": map[string]string{
+		"audio": {
+			"33k": {
 				"BANDWIDTH":      "33763",
 				"K-FORM-NUMBER":  "33",
 				"CODECS":         "m4a_dash container, mp4a.40.2",
@@ -150,7 +150,7 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 				"STREAM-URL":     "audio/und/mp4a/1/seg-$Number$.m4s",
 				"PLAYBACK-URL":   "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/9c2049fc628eb8669170c2289b7d48e5/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d",
 			},
-			"65k": map[string]string{
+			"65k": {
 				"K-FORM":         "DASH audio 65k",
 				"MIME-TYPE":      "audio/mp4",
 				"STREAM":         "audio only",
@@ -165,8 +165,8 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 			},
 		},
 
-		"video": map[string]map[string]string{
-			"171k": map[string]string{
+		"video": {
+			"171k": {
 				"MIME-TYPE":      "video/mp4",
 				"TOTAL-SEGMENTS": "317",
 				"INIT-URL":       "video/avc1/1/init.mp4",
@@ -180,7 +180,7 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 				"STREAM":         "video only",
 				"PLAYBACK-URL":   "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/9c2049fc628eb8669170c2289b7d48e5/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d",
 			},
-			"311k": map[string]string{
+			"311k": {
 				"INIT-URL":       "video/avc1/2/init.mp4",
 				"PLAYBACK-URL":   "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/9c2049fc628eb8669170c2289b7d48e5/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d",
 				"K-FORM-NUMBER":  "311",
@@ -194,7 +194,7 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 				"BANDWIDTH":      "311810",
 				"K-FORM":         "DASH video 311k",
 			},
-			"566k": map[string]string{
+			"566k": {
 				"CODECS":         "mp4_dash container, avc1.4D401F",
 				"RESOLUTION":     "854x480",
 				"FRAME-RATE":     "25",
@@ -208,7 +208,7 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 				"K-FORM-NUMBER":  "566",
 				"STREAM":         "video only",
 			},
-			"1074k": map[string]string{
+			"1074k": {
 				"K-FORM":         "DASH video 1074k",
 				"RESOLUTION":     "1280x720",
 				"STREAM-URL":     "video/avc1/4/seg-$Number$.m4s",
@@ -222,7 +222,7 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 				"STREAM":         "video only",
 				"TOTAL-SEGMENTS": "317",
 			},
-			"2408k": map[string]string{
+			"2408k": {
 				"K-FORM-NUMBER":  "2408",
 				"RESOLUTION":     "1920x1080",
 				"STREAM":         "video only",
@@ -243,8 +243,8 @@ func getExpectedDashFormats2() map[string]map[string]map[string]string {
 
 func getExpectedDashFormats1() map[string]map[string]map[string]string {
 	return map[string]map[string]map[string]string{
-		"audio": map[string]map[string]string{
-			"33k": map[string]string{
+		"audio": {
+			"33k": {
 				"BANDWIDTH":      "33763",
 				"K-FORM":         "DASH audio 33k",
 				"TOTAL-SEGMENTS": "317",
@@ -257,7 +257,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 				"STREAM":         "audio only",
 				"INIT-URL":       "audio/und/mp4a/1/init.mp4",
 			},
-			"65k": map[string]string{
+			"65k": {
 				"BANDWIDTH":      "65654",
 				"K-FORM-NUMBER":  "65",
 				"MIME-TYPE":      "audio/mp4",
@@ -272,8 +272,8 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 			},
 		},
 
-		"video": map[string]map[string]string{
-			"96k": map[string]string{
+		"video": {
+			"96k": {
 				"BANDWIDTH":      "96191",
 				"K-FORM-NUMBER":  "96",
 				"CODECS":         "mp4_dash container, avc1.42C00C",
@@ -287,7 +287,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 				"STREAM-URL":     "video/avc1/1/seg-$Number$.m4s",
 				"PLAYBACK-URL":   "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?ladder=phone&hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d",
 			},
-			"163k": map[string]string{
+			"163k": {
 				"BANDWIDTH":      "163093",
 				"K-FORM-NUMBER":  "163",
 				"RESOLUTION":     "426x240",
@@ -301,7 +301,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 				"STREAM":         "video only",
 				"INIT-URL":       "video/avc1/2/init.mp4",
 			},
-			"242k": map[string]string{
+			"242k": {
 				"STREAM":         "video only",
 				"STREAM-URL":     "video/avc1/3/seg-$Number$.m4s",
 				"K-FORM":         "DASH video 242k",
@@ -315,7 +315,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 				"CODECS":         "mp4_dash container, avc1.4D401E",
 				"TOTAL-SEGMENTS": "317",
 			},
-			"475k": map[string]string{
+			"475k": {
 				"MIME-TYPE":      "video/mp4",
 				"STREAM":         "video only",
 				"TOTAL-SEGMENTS": "317",
@@ -329,7 +329,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 				"INIT-URL":       "video/avc1/4/init.mp4",
 				"STREAM-URL":     "video/avc1/4/seg-$Number$.m4s",
 			},
-			"822k": map[string]string{
+			"822k": {
 				"K-FORM":         "DASH video 822k",
 				"K-FORM-NUMBER":  "822",
 				"CODECS":         "mp4_dash container, avc1.640028",
@@ -343,7 +343,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 				"STREAM-URL":     "video/avc1/5/seg-$Number$.m4s",
 				"PLAYBACK-URL":   "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?ladder=phone&hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d",
 			},
-			"1847k": map[string]string{
+			"1847k": {
 				"STREAM-URL":     "video/avc1/6/seg-$Number$.m4s",
 				"PLAYBACK-URL":   "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?ladder=phone&hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d",
 				"K-FORM-NUMBER":  "1847",
