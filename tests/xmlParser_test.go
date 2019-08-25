@@ -362,7 +362,7 @@ func getExpectedDashFormats1() map[string]map[string]map[string]string {
 }
 
 func TestGetDashFormats1(t *testing.T) {
-	masterPlaybackUrl := "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?ladder=phone&hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d"
+	masterPlaybackURL := "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?ladder=phone&hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d"
 	mpdContent, err := ioutil.ReadFile("resources/mpdContent1.xml")
 
 	if err != nil {
@@ -370,7 +370,7 @@ func TestGetDashFormats1(t *testing.T) {
 	}
 
 	expectedDashFormats := getExpectedDashFormats1()
-	actualDashFormats := utils.GetDashFormats(mpdContent, masterPlaybackUrl)
+	actualDashFormats := utils.GetDashFormats(mpdContent, masterPlaybackURL)
 
 	if !reflect.DeepEqual(expectedDashFormats, actualDashFormats) {
 		t.Error("Expected \n", expectedDashFormats, "\n\n\nbut got \n", actualDashFormats)
@@ -378,7 +378,7 @@ func TestGetDashFormats1(t *testing.T) {
 }
 
 func TestGetDashFormats2(t *testing.T) {
-	masterPlaybackUrl := "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/9c2049fc628eb8669170c2289b7d48e5/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d"
+	masterPlaybackURL := "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/9c2049fc628eb8669170c2289b7d48e5/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d"
 	mpdContent, err := ioutil.ReadFile("resources/mpdContent2.xml")
 
 	if err != nil {
@@ -386,7 +386,7 @@ func TestGetDashFormats2(t *testing.T) {
 	}
 
 	expectedDashFormats := getExpectedDashFormats2()
-	actualDashFormats := utils.GetDashFormats(mpdContent, masterPlaybackUrl)
+	actualDashFormats := utils.GetDashFormats(mpdContent, masterPlaybackURL)
 
 	if !reflect.DeepEqual(expectedDashFormats, actualDashFormats) {
 		t.Error("Expected \n", expectedDashFormats, "\n\n\nbut got \n", actualDashFormats)
@@ -394,7 +394,7 @@ func TestGetDashFormats2(t *testing.T) {
 }
 
 func TestGetDashFormats3(t *testing.T) {
-	masterPlaybackUrl := "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d"
+	masterPlaybackURL := "https://hses.akamaized.net/videos/vijay_hd/naam_iruvar_namakku_iruvar/c18c23262c/386/1100025368/1565374162079/69b5fa122ada150073875ff77a52bbee/master.mpd?hdnea=st=1566668622~exp=1566672222~acl=/*~hmac=c880125b7a047e7406d97ca30d11a95504773a5ce5bf053ceef748118ce2986d"
 	mpdContent, err := ioutil.ReadFile("resources/mpdContent3.xml")
 
 	if err != nil {
@@ -402,7 +402,7 @@ func TestGetDashFormats3(t *testing.T) {
 	}
 
 	expectedDashFormats := getExpectedDashFormats3()
-	actualDashFormats := utils.GetDashFormats(mpdContent, masterPlaybackUrl)
+	actualDashFormats := utils.GetDashFormats(mpdContent, masterPlaybackURL)
 
 	if !reflect.DeepEqual(expectedDashFormats, actualDashFormats) {
 		t.Error("Expected \n", expectedDashFormats, "\n\n\nbut got \n", actualDashFormats)

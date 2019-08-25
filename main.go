@@ -97,19 +97,19 @@ func main() {
 		flag.Usage()
 		os.Exit(-1)
 	} else if flagCount > 1 {
-		fmt.Println("Url must be provided at end before options")
+		fmt.Println("URL must be provided at end before options")
 		flag.Usage()
 		os.Exit(-1)
-	} else if videoUrl := flag.Args()[0]; videoUrl != "" {
+	} else if videoURL := flag.Args()[0]; videoURL != "" {
 
-		videoUrl = utils.GetParsedVideoUrl(videoUrl)
+		videoURL = utils.GetParsedVideoURL(videoURL)
 
-		isValidUrl, videoId := utils.IsValidHotstarUrl(videoUrl)
-		if isValidUrl {
+		isValidURL, videoID := utils.IsValidHotstarURL(videoURL)
+		if isValidURL {
 			if *listFormatsFlag || *titleFlag || *descriptionFlag {
 				//list video formats
 
-				utils.ListVideoFormats(videoUrl, videoId, *titleFlag, *descriptionFlag)
+				utils.ListVideoFormats(videoURL, videoID, *titleFlag, *descriptionFlag)
 
 			} else if *formatFlag != "" {
 				if !hasValidFormatPrefix(*formatFlag) {
@@ -117,9 +117,9 @@ func main() {
 					os.Exit(-1)
 				} else {
 					if isDashVideoFormatCode(*formatFlag) {
-						utils.DownloadAudioOrVideo(videoUrl, videoId, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, true)
+						utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, true)
 					} else {
-						utils.DownloadAudioOrVideo(videoUrl, videoId, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+						utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
 					}
 				}
 			} else {

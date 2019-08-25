@@ -10,19 +10,19 @@ import (
 	"github.com/Gotham25/hotstar-dl/utils"
 )
 
-func getExpectedFormats1(kForm string, programId string, closedCaptions string, bandwidth string, codecs string, resolution string, streamUrl string) map[string]string {
+func getExpectedFormats1(kForm string, programID string, closedCaptions string, bandwidth string, codecs string, resolution string, streamURL string) map[string]string {
 	expectedFormats := make(map[string]string)
 	expectedFormats["K-FORM"] = kForm
-	expectedFormats["PROGRAM-ID"] = programId
+	expectedFormats["PROGRAM-ID"] = programID
 	expectedFormats["CLOSED-CAPTIONS"] = closedCaptions
 	expectedFormats["BANDWIDTH"] = bandwidth
 	expectedFormats["CODECS"] = codecs
 	expectedFormats["RESOLUTION"] = resolution
-	expectedFormats["STREAM-URL"] = streamUrl
+	expectedFormats["STREAM-URL"] = streamURL
 	return expectedFormats
 }
 
-func getExpectedFormats2(kForm string, averageBandwidth string, bandwidth string, codecs string, resolution string, frameRate string, streamUrl string) map[string]string {
+func getExpectedFormats2(kForm string, averageBandwidth string, bandwidth string, codecs string, resolution string, frameRate string, streamURL string) map[string]string {
 	expectedFormats := make(map[string]string)
 	expectedFormats["K-FORM"] = kForm
 	expectedFormats["AVERAGE-BANDWIDTH"] = averageBandwidth
@@ -30,18 +30,18 @@ func getExpectedFormats2(kForm string, averageBandwidth string, bandwidth string
 	expectedFormats["CODECS"] = codecs
 	expectedFormats["RESOLUTION"] = resolution
 	expectedFormats["FRAME-RATE"] = frameRate
-	expectedFormats["STREAM-URL"] = streamUrl
+	expectedFormats["STREAM-URL"] = streamURL
 	return expectedFormats
 }
 
-func getExpectedFormats3(kForm string, averageBandwidth string, bandwidth string, codecs string, resolution string, streamUrl string) map[string]string {
+func getExpectedFormats3(kForm string, averageBandwidth string, bandwidth string, codecs string, resolution string, streamURL string) map[string]string {
 	expectedFormats := make(map[string]string)
 	expectedFormats["K-FORM"] = kForm
 	expectedFormats["AVERAGE-BANDWIDTH"] = averageBandwidth
 	expectedFormats["BANDWIDTH"] = bandwidth
 	expectedFormats["CODECS"] = codecs
 	expectedFormats["RESOLUTION"] = resolution
-	expectedFormats["STREAM-URL"] = streamUrl
+	expectedFormats["STREAM-URL"] = streamURL
 	return expectedFormats
 }
 
@@ -82,8 +82,8 @@ func getExpectedVideoFormats3() map[string]map[string]string {
 
 func TestParseM3u8Content1(t *testing.T) {
 
-	playbackUrl := "https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/master.m3u8?hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6"
-	playbackUrlData := "hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6"
+	playbackURL := "https://hssouthsp-vh.akamaihd.net/i/videos/vijay_hd/chinnathambi/149/master_,106,180,400,800,1300,2000,3000,4500,kbps.mp4.csmil/master.m3u8?hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6"
+	playbackURLData := "hdnea=st=1551575624~exp=1551577424~acl=/*~hmac=3d89f2aab02315ee100156209746e0e9f3bc70b0b52c17573300b5caa517cfd6"
 
 	expectedVideoFormats := getExpectedVideoFormats1()
 
@@ -92,7 +92,7 @@ func TestParseM3u8Content1(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	actualVideoFormats := utils.ParseM3u8Content(fmt.Sprintf("%s", m3u8Content), playbackUrl, playbackUrlData)
+	actualVideoFormats := utils.ParseM3u8Content(fmt.Sprintf("%s", m3u8Content), playbackURL, playbackURLData)
 
 	if !reflect.DeepEqual(expectedVideoFormats, actualVideoFormats) {
 		t.Error("Expected \n", expectedVideoFormats, "\n\n\nbut got \n", actualVideoFormats)
@@ -101,8 +101,8 @@ func TestParseM3u8Content1(t *testing.T) {
 }
 
 func TestParseM3u8Content2(t *testing.T) {
-	playbackUrl := "https://hsdesinova.akamaized.net/video/vijay_hd/chinnathambi/92df3509e0/337/master.m3u8?hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669"
-	playbackUrlData := "hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669"
+	playbackURL := "https://hsdesinova.akamaized.net/video/vijay_hd/chinnathambi/92df3509e0/337/master.m3u8?hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669"
+	playbackURLData := "hdnea=st=1551575720~exp=1551577520~acl=/*~hmac=75f2905ca5d5f79a674205e3e0e25b622ff9d08f77dbc2d50374d70ddb706669"
 
 	expectedVideoFormats := getExpectedVideoFormats2()
 
@@ -111,7 +111,7 @@ func TestParseM3u8Content2(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	actualVideoFormats := utils.ParseM3u8Content(fmt.Sprintf("%s", m3u8Content), playbackUrl, playbackUrlData)
+	actualVideoFormats := utils.ParseM3u8Content(fmt.Sprintf("%s", m3u8Content), playbackURL, playbackURLData)
 
 	if !reflect.DeepEqual(expectedVideoFormats, actualVideoFormats) {
 		t.Error("Expected \n", expectedVideoFormats, "\n\n\nbut got \n", actualVideoFormats)
@@ -120,8 +120,8 @@ func TestParseM3u8Content2(t *testing.T) {
 }
 
 func TestParseM3u8Content3(t *testing.T) {
-	playbackUrl := "https://hses.akamaized.net/videos/vijay_hd/chinnathambi/0b3c2675ea/362/1100017417/phone/master.m3u8?hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7"
-	playbackUrlData := "hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7"
+	playbackURL := "https://hses.akamaized.net/videos/vijay_hd/chinnathambi/0b3c2675ea/362/1100017417/phone/master.m3u8?hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7"
+	playbackURLData := "hdnea=st=1551575749~exp=1551577549~acl=/*~hmac=45b40d19a096f5a9e1d0eb68c2c9577ae349443dde273a9ce393f17686badcb7"
 
 	expectedVideoFormats := getExpectedVideoFormats3()
 
@@ -130,7 +130,7 @@ func TestParseM3u8Content3(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	actualVideoFormats := utils.ParseM3u8Content(fmt.Sprintf("%s", m3u8Content), playbackUrl, playbackUrlData)
+	actualVideoFormats := utils.ParseM3u8Content(fmt.Sprintf("%s", m3u8Content), playbackURL, playbackURLData)
 
 	if !reflect.DeepEqual(expectedVideoFormats, actualVideoFormats) {
 		t.Error("Expected \n", expectedVideoFormats, "\n\n\nbut got \n", actualVideoFormats)

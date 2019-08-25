@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
-	"github.com/Gotham25/hotstar-dl/utils"
 	"strings"
 	"testing"
+
+	"github.com/Gotham25/hotstar-dl/utils"
 )
 
-func TestMakeGetRequest_ValidUrl(t *testing.T) {
+func TestMakeGetRequest_ValidURL(t *testing.T) {
 	expectedPageContents := "google-site-verification: google80369ee5f1cdb5f7.html"
 
 	pageContents, err := utils.MakeGetRequest("https://hotstardownload.herokuapp.com/google80369ee5f1cdb5f7.html", nil)
@@ -19,7 +20,7 @@ func TestMakeGetRequest_ValidUrl(t *testing.T) {
 }
 
 //TODO: Rework this tests
-/*func TestMakeGetRequest_InvalidUrl(t *testing.T) {
+/*func TestMakeGetRequest_InvalidURL(t *testing.T) {
 	expectedError := "Get https://www.blah.com: net/http: TLS handshake timeout"
 
 	pageContents, actualError := utils.MakeGetRequest("https://www.blah.com", nil)
@@ -29,7 +30,7 @@ func TestMakeGetRequest_ValidUrl(t *testing.T) {
 	}
 }*/
 
-func TestMakeGetRequest_ValidUrl_ReturnsInvalidStatusCode(t *testing.T) {
+func TestMakeGetRequest_ValidURL_ReturnsInvalidStatusCode(t *testing.T) {
 	var expectedPageContents string
 	expectedError := "Invalid response code: 403"
 	expectedPageContents += "<HTML><HEAD>\n"
