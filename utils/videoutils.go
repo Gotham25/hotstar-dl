@@ -390,7 +390,7 @@ func DownloadAudioOrVideo(videoURL string, videoID string, vFormat string, userF
 	if isDashAV {
 		format := videoFormats[vFormat]
 		if outputFileName == "" {
-			outputFileName = fmt.Sprintf("%s_%s__DASH_AV.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1), videoID)
+			outputFileName = fmt.Sprintf("%s_%s__DASH_AV.mp4", videoID, strings.Replace(videoMetadata["title"], " ", "_", -1))
 		}
 		outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)
 
@@ -428,7 +428,7 @@ func DownloadAudioOrVideo(videoURL string, videoID string, vFormat string, userF
 			if streamURL, isStreamURLAvailable := videoFormat["STREAM-URL"]; isStreamURLAvailable {
 
 				if outputFileName == "" {
-					outputFileName = fmt.Sprintf("%s-%s.mp4", strings.Replace(videoMetadata["title"], " ", "_", -1), videoID)
+					outputFileName = fmt.Sprintf("%s-%s.mp4", videoID, strings.Replace(videoMetadata["title"], " ", "_", -1))
 				}
 
 				outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)
