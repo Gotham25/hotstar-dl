@@ -123,7 +123,8 @@ func main() {
 					}
 				}
 			} else {
-				//TODO: Check for other flags if associated with url if any
+				//Fallback to best (or) least format identified so far
+				utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
 			}
 		} else {
 			fmt.Println("Invalid hotstar url. Please enter a valid one")

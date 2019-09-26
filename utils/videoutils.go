@@ -334,6 +334,22 @@ func runFfmpegCommand(ffmpegPath string, videoMetadata map[string]string, stream
 
 }
 
+func GetBestOrLeastResolutionFormat(videoFormats map[string]map[string]string, bestOrLeast string) string {
+
+	for formatCode, formatInfo := range videoFormats {
+		if strings.HasPrefix(formatCode, "hls-") {
+			//video format
+			if isBestOrLeast, bestOrLeastAvailable := formatInfo[bestOrLeast]; bestOrLeastAvailable {
+				if isBestOrLeast == "true" {
+					return formatCode
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
 //DownloadAudioOrVideo downloads the video for given video format and video url. It also adds metadata to it if needed. FFMPEG path and Output video file name can be customized.
 func DownloadAudioOrVideo(videoURL string, videoID string, vFormat string, userFfmpegPath string, outputFileName string, metadataFlag bool, isDashAV bool) {
 
@@ -393,6 +409,20 @@ func DownloadAudioOrVideo(videoURL string, videoID string, vFormat string, userF
 			os.Exit(0)
 		}
 	} else {
+
+		//Check if vFormat fallback is enabled by empty value passed
+		if len(strings.TrimSpace(vFormat)) == 0 {
+			fmt.Println("Missing format flag falling back to best formats for video")
+			vFormat = GetBestOrLeastResolutionFormat(videoFormats, "BEST_RESOLUTION")
+			if len(strings.TrimSpace(vFormat)) != 0 {
+				fmt.Println("Best format for video is, ", videoFormats[vFormat]["RESOLUTION"])
+			} else {
+				vFormat = GetBestOrLeastResolutionFormat(videoFormats, "LEAST_RESOLUTION")
+				fmt.Println("Best formats for the video isn't available falling back to least resolution, ", videoFormats[vFormat]["RESOLUTION"])
+
+			}
+		}
+
 		if videoFormat, isValidFormat := videoFormats[vFormat]; isValidFormat {
 
 			if streamURL, isStreamURLAvailable := videoFormat["STREAM-URL"]; isStreamURLAvailable {

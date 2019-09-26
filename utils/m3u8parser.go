@@ -12,6 +12,7 @@ func ParseM3u8Content(m3u8Content string, playbackURL string, playbackURLData st
 
 	var m3u8Info map[string]string
 	var urlFormats = make(map[string]map[string]string)
+	var isLeastResolution = true
 	for _, line := range strings.Split(m3u8Content, "\n") {
 
 		if strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
@@ -45,6 +46,18 @@ func ParseM3u8Content(m3u8Content string, playbackURL string, playbackURLData st
 				kForm := fmt.Sprintf("%dk", kFactor)
 
 				m3u8Info["K-FORM"] = kForm
+				if strings.Compare(m3u8Info["RESOLUTION"], "640x360") == 0 {
+					m3u8Info["BEST_RESOLUTION"] = "true"
+				} else {
+					m3u8Info["BEST_RESOLUTION"] = "false"
+				}
+
+				if isLeastResolution {
+					m3u8Info["LEAST_RESOLUTION"] = "true"
+					isLeastResolution = false
+				} else {
+					m3u8Info["LEAST_RESOLUTION"] = "false"
+				}
 
 				streamURL := line
 
