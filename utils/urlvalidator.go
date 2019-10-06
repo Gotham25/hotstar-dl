@@ -8,27 +8,20 @@ import (
 	"regexp"
 )
 
-func reSubMatchMap(r *regexp.Regexp, str string) map[string]string {
-	match := r.FindStringSubmatch(str)
-	subMatchMap := make(map[string]string)
-	for i, name := range r.SubexpNames() {
-		if i != 0 {
-			subMatchMap[name] = match[i]
-		}
-	}
-
-	return subMatchMap
-}
-
 //IsValidHotstarURL validates if the given video url is a valid Hotstar url or not.
-func IsValidHotstarURL(videoURL string) (bool, string) {
-	var urlRegex = regexp.MustCompile(`(https|http?://)?(www|uk\.)?hotstar\.com/(?:.+?[/-])+(?P<videoId>\d{10})`)
-	if urlRegex.MatchString(videoURL) {
-		match := reSubMatchMap(urlRegex, videoURL)
-		return true, match["videoId"]
+func IsValidHotstarURL(videoOrPlaylistURL string) (bool, string, bool) {
+	var videoURLRegex = regexp.MustCompile(`(https?://)?(www|uk\.)?hotstar\.com/(?:.+?[/-])+(?P<videoId>\d{10})`)
+	var playlistURLRegex = regexp.MustCompile(`(https?://)?(www|uk\.)?hotstar\.com/tv/[^/]+/s-\w+/list/[^/]+/t-(?P<playlistId>\w+)`)
+
+	if videoURLRegex.MatchString(videoOrPlaylistURL) {
+		match := ReSubMatchMap(videoURLRegex, videoOrPlaylistURL)
+		return true, match["videoId"], false
+	} else if playlistURLRegex.MatchString(videoOrPlaylistURL) {
+		match := ReSubMatchMap(playlistURLRegex, videoOrPlaylistURL)
+		return true, match["playlistId"], true
 	}
 
-	return false, ""
+	return false, "", false
 }
 
 //GetParsedVideoURL parses given video url for proper url scheme.

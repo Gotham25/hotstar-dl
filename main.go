@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/Gotham25/hotstar-dl/utils"
@@ -17,6 +18,7 @@ var date string
 //flag descriptions
 var helpFlagDesc = "Prints this help and exit"
 var listFormatsFlagDesc = "List available video formats for given url"
+var playlistFlagDesc = "Video range to download from playlist"
 var formatFlagDesc = "Video format to download video in specified resolution"
 var ffmpegPathFlagDesc = "Location of the ffmpeg binary(absolute path)"
 var metadataFlagDesc = "Add metadata to the video file"
@@ -29,6 +31,7 @@ var versionFlagDesc = "Prints version info and exits"
 var helpFlag = flag.Bool("help", false, helpFlagDesc)
 var listFormatsFlag = flag.Bool("list", false, listFormatsFlagDesc)
 var formatFlag = flag.String("format", "", formatFlagDesc)
+var playlistFlag = flag.String("playlist", "", playlistFlagDesc)
 var ffmpegPathFlag = flag.String("ffmpeg-location", "", ffmpegPathFlagDesc)
 var metadataFlag = flag.Bool("add-metadata", false, metadataFlagDesc)
 var outputFileNameFlag = flag.String("output", "", outputFileNameFlagDesc)
@@ -41,6 +44,7 @@ func init() {
 	flag.BoolVar(helpFlag, "h", false, helpFlagDesc)
 	flag.BoolVar(listFormatsFlag, "l", false, listFormatsFlagDesc)
 	flag.StringVar(formatFlag, "f", "", formatFlagDesc)
+	flag.StringVar(playlistFlag, "p", "", playlistFlagDesc)
 	flag.BoolVar(metadataFlag, "m", false, metadataFlagDesc)
 	flag.StringVar(outputFileNameFlag, "o", "", outputFileNameFlagDesc)
 	flag.BoolVar(titleFlag, "t", false, titleFlagDesc)
@@ -53,6 +57,7 @@ func init() {
 		fmt.Println("Options:")
 		fmt.Fprintf(os.Stdout, "-h, --help\t\t%s\n", helpFlagDesc)
 		fmt.Fprintf(os.Stdout, "-l, --list\t\t%s\n", listFormatsFlagDesc)
+		fmt.Fprintf(os.Stdout, "-p, --playlist\t\t%s\n", playlistFlagDesc)
 		fmt.Fprintf(os.Stdout, "-f, --format\t\t%s\n", formatFlagDesc)
 		fmt.Fprintf(os.Stdout, "--ffmpeg-location\t%s\n", ffmpegPathFlagDesc)
 		fmt.Fprintf(os.Stdout, "-m, --add-metadata\t%s\n", metadataFlagDesc)
@@ -84,6 +89,66 @@ func hasValidFormatPrefix(formatCode string) bool {
 	return false
 }
 
+func isValidPlaylistFormat(playlistFormat string) (string, string, bool) {
+	var playlistFormatRegex = regexp.MustCompile(`^(?P<startRange>\d*)-(?P<endRange>\d*)$`)
+	if playlistFormatRegex.MatchString(playlistFormat) {
+		match := utils.ReSubMatchMap(playlistFormatRegex, playlistFormat)
+		return match["startRange"], match["endRange"], true
+	}
+	return "", "", false
+}
+
+func handlePlaylistURL(playlistID string) {
+	var playlistStartRange, playlistEndRange string
+	var isValidPlaylist bool
+
+	if *playlistFlag != "" {
+		playlistStartRange, playlistEndRange, isValidPlaylist = isValidPlaylistFormat(*playlistFlag)
+		if !isValidPlaylist {
+			fmt.Printf("\nInvalid playlist format '%s' specified. Should be of form <number>-<number>. Eg like 3-7 (or) 8- (or) -5 (or) -", *playlistFlag)
+			os.Exit(-1)
+		}
+	}
+
+	if *listFormatsFlag || *titleFlag || *descriptionFlag {
+		utils.ListOrDownloadPlaylistVideoFormats(playlistID, *titleFlag, *descriptionFlag, playlistStartRange, playlistEndRange, false, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+	} else if *formatFlag != "" {
+		if !hasValidFormatPrefix(*formatFlag) {
+			fmt.Println("Invalid format specified")
+			os.Exit(-1)
+		} else {
+			if isDashVideoFormatCode(*formatFlag) {
+				utils.ListOrDownloadPlaylistVideoFormats(playlistID, *titleFlag, *descriptionFlag, playlistStartRange, playlistEndRange, true, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, true)
+			} else {
+				utils.ListOrDownloadPlaylistVideoFormats(playlistID, *titleFlag, *descriptionFlag, playlistStartRange, playlistEndRange, true, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+			}
+		}
+	} else {
+		utils.ListOrDownloadPlaylistVideoFormats(playlistID, *titleFlag, *descriptionFlag, playlistStartRange, playlistEndRange, true, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+	}
+}
+
+func handleNonPlaylistURL(videoURL, videoID string) {
+	if *listFormatsFlag || *titleFlag || *descriptionFlag {
+		//list video formats
+		utils.ListVideoFormats(videoURL, videoID, nil, *titleFlag, *descriptionFlag)
+	} else if *formatFlag != "" {
+		if !hasValidFormatPrefix(*formatFlag) {
+			fmt.Println("Invalid format specified")
+			os.Exit(-1)
+		} else {
+			if isDashVideoFormatCode(*formatFlag) {
+				utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, true)
+			} else {
+				utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+			}
+		}
+	} else {
+		//Fallback to best (or) least format identified so far
+		utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+	}
+}
+
 func main() {
 
 	flag.Parse()
@@ -104,27 +169,13 @@ func main() {
 
 		videoURL = utils.GetParsedVideoURL(videoURL)
 
-		isValidURL, videoID := utils.IsValidHotstarURL(videoURL)
+		isValidURL, videoOrPlaylistID, isPlaylistID := utils.IsValidHotstarURL(videoURL)
 		if isValidURL {
-			if *listFormatsFlag || *titleFlag || *descriptionFlag {
-				//list video formats
+			if isPlaylistID {
+				handlePlaylistURL(videoOrPlaylistID)
 
-				utils.ListVideoFormats(videoURL, videoID, *titleFlag, *descriptionFlag)
-
-			} else if *formatFlag != "" {
-				if !hasValidFormatPrefix(*formatFlag) {
-					fmt.Println("Invalid format specified")
-					os.Exit(-1)
-				} else {
-					if isDashVideoFormatCode(*formatFlag) {
-						utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, true)
-					} else {
-						utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
-					}
-				}
 			} else {
-				//Fallback to best (or) least format identified so far
-				utils.DownloadAudioOrVideo(videoURL, videoID, *formatFlag, *ffmpegPathFlag, *outputFileNameFlag, *metadataFlag, false)
+				handleNonPlaylistURL(videoURL, videoOrPlaylistID)
 			}
 		} else {
 			fmt.Println("Invalid hotstar url. Please enter a valid one")

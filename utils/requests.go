@@ -9,6 +9,8 @@ import (
 //MakeGetRequest makes GET request for given url with given headers and returns web page contents as bytes with errors if any.
 func MakeGetRequest(url string, headers map[string]string) ([]byte, error) {
 
+	//fmt.Println("MakeGetRequest url: ", url)
+
 	request, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {

@@ -1,158 +1,29 @@
 package utils
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"sort"
+	"strconv"
 	"strings"
-	"text/tabwriter"
-
-	"github.com/google/uuid"
 )
 
-var videoFormatsRetryCount = 0
+var videoURLRetryCount = 0
+var playbackRetryCount = 0
+var playbackURIContentRetryCount = 0
+var masterPlaybackURLRetryCount = 0
+var tempVideoFormatsRetryCount = 0
 
-//GetVideoFormats gets all available video formats for given video url.
-func GetVideoFormats(videoURL string, videoID string) (map[string]map[string]string, map[string]string, error) {
-	//TODO: show retry info upon debug level
-
-	var requestHeaders = map[string]string{
+func getRequestHeaders() map[string]string {
+	return map[string]string{
 		"Hotstarauth":     GenerateHotstarAuth(),
 		"X-Country-Code":  "IN",
 		"X-Platform-Code": "JIO",
 		"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.122 Safari/537.36",
 	}
+}
 
-	videoURLContentBytes, err := MakeGetRequest(videoURL, requestHeaders)
+func getAggregatedFormats(videoFormatsTemp, audioDashFormatsTemp, videoDashFormatsTemp map[string][]map[string]string) map[string]map[string]string {
 	totalFormats := make(map[string]map[string]string)
-	videoFormatsTemp := make(map[string][]map[string]string)
-	videoDashFormatsTemp := make(map[string][]map[string]string)
-	audioDashFormatsTemp := make(map[string][]map[string]string)
-
-	if err != nil {
-		if videoFormatsRetryCount+1 < 10 {
-			//retry again for fetching formats
-			videoFormatsRetryCount++
-			//fmt.Printf("GetVideoFormats: GET request to videoURL failed... Retrying count : #%d\n", videoFormatsRetryCount)
-			return GetVideoFormats(videoURL, videoID)
-		}
-		return nil, nil, err
-	}
-
-	videoURLContent := fmt.Sprintf("%s", videoURLContentBytes)
-
-	playbackURI, videoMetadata, err := GetPlaybackURI(videoURLContent, videoURL, videoID, uuid.New().String())
-
-	if err != nil {
-		if videoFormatsRetryCount+1 < 10 {
-			//retry again for fetching formats
-			videoFormatsRetryCount++
-			//fmt.Printf("GetVideoFormats: Invalid APP_STATE json... retrying count : #%d\n", videoFormatsRetryCount)
-			return GetVideoFormats(videoURL, videoID)
-		}
-		return nil, nil, err
-		//log.Fatal(fmt.Errorf("Error occurred : %s", err))
-	}
-
-	if drmProtected, isDrmKeyAvailable := videoMetadata["drmProtected"]; isDrmKeyAvailable {
-		if drmProtected == "true" {
-			return nil, nil, fmt.Errorf("the content is DRM Protected")
-		}
-	}
-
-	playbackURIContentBytes, err := MakeGetRequest(playbackURI, requestHeaders)
-
-	if err != nil {
-		if videoFormatsRetryCount+1 < 10 {
-			//retry again for fetching formats
-			videoFormatsRetryCount++
-			//fmt.Printf("GetVideoFormats: GET request to playbackURI failed... Retrying count : #%d\n", videoFormatsRetryCount)
-			return GetVideoFormats(videoURL, videoID)
-		}
-		log.Fatal(fmt.Errorf("Error occurred : %s", err))
-	}
-
-	masterPlaybackURLs, err := GetMasterPlaybackURLs(playbackURIContentBytes)
-
-	if err != nil {
-		if videoFormatsRetryCount+1 < 10 {
-			//retry again for fetching formats
-			videoFormatsRetryCount++
-			//fmt.Printf("GetVideoFormats: Retriving masterPlaybackURL failed... Retrying count : #%d\n", videoFormatsRetryCount)
-			return GetVideoFormats(videoURL, videoID)
-		}
-		return nil, nil, err
-		//log.Fatal(fmt.Errorf("Error occurred : %s", err))
-	}
-
-	for _, masterPlaybackURL := range masterPlaybackURLs {
-
-		if masterPlaybackURL != "" {
-
-			var queryParams string
-			masterPlaybackURLQueryParam := strings.Split(masterPlaybackURL, "?")
-
-			if len(masterPlaybackURLQueryParam) > 1 {
-				queryParams = masterPlaybackURLQueryParam[1]
-			}
-
-			if strings.Contains(masterPlaybackURL, "m3u8") {
-
-				masterPlaybackPageContentsM3u8Bytes, err := MakeGetRequest(masterPlaybackURL, requestHeaders)
-
-				if err != nil {
-
-					if videoFormatsRetryCount+1 < 10 {
-						//retry again for fetching formats
-						videoFormatsRetryCount++
-						//fmt.Printf("GetVideoFormats: GET request to masterPlaybackURL failed... Retrying count : #%d\n", videoFormatsRetryCount)
-						return GetVideoFormats(videoURL, videoID)
-					}
-
-					return nil, nil, err
-				}
-
-				for fid, formatsList := range ParseM3u8Content(fmt.Sprintf("%s", masterPlaybackPageContentsM3u8Bytes), masterPlaybackURL, queryParams) {
-					videoFormatsTemp[fid] = append(videoFormatsTemp[fid], formatsList)
-				}
-			} else {
-
-				masterPlaybackPageContentsMpdBytes, err := MakeGetRequest(masterPlaybackURL, requestHeaders)
-
-				if err != nil {
-
-					if videoFormatsRetryCount+1 < 10 {
-						//retry again for fetching formats
-						videoFormatsRetryCount++
-						//fmt.Printf("GetVideoFormats: GET request to masterPlaybackURL failed... Retrying count : #%d\n", videoFormatsRetryCount)
-						return GetVideoFormats(videoURL, videoID)
-					}
-
-					return nil, nil, err
-				}
-
-				dFormats := GetDashFormats(masterPlaybackPageContentsMpdBytes, masterPlaybackURL)
-
-				for avType, formatsList := range dFormats {
-					for formatCode, formatInfo := range formatsList {
-						if avType == "video" {
-							videoDashFormatsTemp[formatCode] = append(videoDashFormatsTemp[formatCode], formatInfo)
-						} else {
-							audioDashFormatsTemp[formatCode] = append(audioDashFormatsTemp[formatCode], formatInfo)
-						}
-					}
-				}
-
-			}
-
-		}
-
-	}
 
 	for fid, formatsList := range videoFormatsTemp {
 		if len(formatsList) == 1 {
@@ -186,269 +57,185 @@ func GetVideoFormats(videoURL string, videoID string) (map[string]map[string]str
 		}
 	}
 
-	return totalFormats, videoMetadata, nil
+	return totalFormats
 }
 
-//ListVideoFormats lists video formats (or) title (or) description of the video for given video url.
-func ListVideoFormats(videoURL string, videoID string, titleFlag bool, descriptionFlag bool) {
-	videoFormats, videoMetadata, err := GetVideoFormats(videoURL, videoID)
+func getVideoURL(videoURL string, requestHeaders map[string]string) (string, error) {
+	videoURLContentBytes, err := MakeGetRequest(videoURL, requestHeaders)
 
 	if err != nil {
-		log.Fatal(fmt.Errorf("Error occurred : %s", err))
-	}
-
-	if titleFlag || descriptionFlag {
-		if titleFlag {
-			fmt.Println(videoMetadata["title"])
+		if videoURLRetryCount+1 < 10 {
+			//retry again for fetching formats
+			videoURLRetryCount++
+			//fmt.Printf("GetVideoFormats: GET request to videoURL failed... Retrying count : #%d\n", videoURLRetryCount)
+			return getVideoURL(videoURL, requestHeaders)
 		}
-		if descriptionFlag {
-			fmt.Println(videoMetadata["synopsis"])
-		}
-		os.Exit(0)
+		return "", err
 	}
 
-	i := 0
-	videoFormatsSortedKeys := make([]string, len(videoFormats))
-	for formateID := range videoFormats {
-		videoFormatsSortedKeys[i] = formateID
-		i++
-	}
-
-	sort.Strings(videoFormatsSortedKeys)
-
-	//NewWriter(io.Writer, minWidth, tabWidth, padding, padchar, flags)
-	tw := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0) //tabwriter.Debug
-	fmt.Fprintln(tw, "format code\textension\tresolution\tbandwidth\tcodec & frame rate\t")
-
-	for _, formateID := range videoFormatsSortedKeys {
-
-		formatInfo := videoFormats[formateID]
-
-		if mimeType, isMimeTypePresent := formatInfo["MIME-TYPE"]; isMimeTypePresent {
-			if mimeType == "video/mp4" {
-				fmt.Fprintf(tw, "%s\t%s\tmp4\t%s\t%s\t%s fps\t%s\n", formateID, formatInfo["RESOLUTION"], formatInfo["K-FORM"], formatInfo["CODECS"], formatInfo["FRAME-RATE"], formatInfo["STREAM"])
-			} else if mimeType == "audio/mp4" {
-				fmt.Fprintf(tw, "%s\tm4a\t%s\t%s\t%s\t%s\n", formateID, formatInfo["STREAM"], formatInfo["K-FORM"], formatInfo["CODECS"], formatInfo["SAMPLING-RATE"])
-			} else {
-				//Handle undefined mime types for dash formats
-			}
-		} else {
-			if frameRate, isFrameRatePresent := formatInfo["FRAME-RATE"]; isFrameRatePresent {
-				fmt.Fprintf(tw, "%s\tmp4\t%s\t%s\t%s  %s fps\n", formateID, formatInfo["RESOLUTION"], formatInfo["K-FORM"], formatInfo["CODECS"], frameRate)
-			} else {
-				fmt.Fprintf(tw, "%s\tmp4\t%s\t%s\t%s\n", formateID, formatInfo["RESOLUTION"], formatInfo["K-FORM"], formatInfo["CODECS"])
-			}
-		}
-	}
-	tw.Flush()
-	os.Exit(0)
+	return fmt.Sprintf("%s", videoURLContentBytes), nil
 }
 
-func isPathExists(path string) bool {
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return !info.IsDir()
-}
-
-func getFfmpegArgs(videoMetadata map[string]string, streamURL string, dashFiles []string, metadataFlag bool, outputFileName string, isDashFile bool) []string {
-	ffmpegArgs := make([]string, 0)
-	ffmpegArgs = append(ffmpegArgs, "-i")
-	if isDashFile {
-		input := "concat:"
-		for index, filePath := range dashFiles {
-			if index != 0 {
-				input = fmt.Sprintf("%s|", input)
-			}
-			input = fmt.Sprintf("%s%s", input, filePath)
-		}
-		ffmpegArgs = append(ffmpegArgs, input)
-	} else {
-		ffmpegArgs = append(ffmpegArgs, streamURL)
-	}
-
-	if metadataFlag {
-		for metaDataName, metaDataValue := range videoMetadata {
-			ffmpegArgs = append(ffmpegArgs, "-metadata")
-			metaData := fmt.Sprintf("%s=\"%s\"", metaDataName, metaDataValue)
-			ffmpegArgs = append(ffmpegArgs, metaData)
-		}
-	} else {
-		fmt.Println("Skipping adding metadata for video file")
-	}
-
-	ffmpegArgs = append(ffmpegArgs, "-c")
-	ffmpegArgs = append(ffmpegArgs, "copy")
-	ffmpegArgs = append(ffmpegArgs, "-y")
-	ffmpegArgs = append(ffmpegArgs, outputFileName)
-
-	return ffmpegArgs
-}
-
-func runFfmpegCommand(ffmpegPath string, videoMetadata map[string]string, streamURL string, dashFiles []string, metadataFlag bool, outputFileName string, isDashFile bool) {
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-
-	ffmpegArgs := getFfmpegArgs(videoMetadata, streamURL, dashFiles, metadataFlag, outputFileName, isDashFile)
-
-	ffmpegCmd := exec.Command(ffmpegPath, ffmpegArgs...)
-
-	if isDashFile {
-		fmt.Println("\nStarting ffmpeg to merge downloaded DASH audio/video...")
-	} else {
-		fmt.Println("Starting ffmpeg to download video...")
-	}
-
-	stdoutIn, _ := ffmpegCmd.StdoutPipe()
-	stderrIn, _ := ffmpegCmd.StderrPipe()
-
-	var errStdout, errStderr error
-
-	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
-	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
-
-	err := ffmpegCmd.Start()
+func getPlayback(videoURLContent, videoURL, videoID, uuid string) (string, map[string]string, error) {
+	playbackURI, videoMetadata, err := GetPlaybackURI(videoURLContent, videoURL, videoID, uuid)
 
 	if err != nil {
-		log.Fatalf("ffmpegCmd.Start() failed with '%s'\n", err)
+		if playbackRetryCount+1 < 10 {
+			//retry again for fetching formats
+			playbackRetryCount++
+			//fmt.Printf("GetVideoFormats: Invalid APP_STATE json... retrying count : #%d\n", playbackRetryCount)
+			return getPlayback(videoURLContent, videoURL, videoID, uuid)
+		}
+		return "", nil, err
+		//log.Fatal(fmt.Errorf("Error occurred : %s", err))
 	}
 
-	go func() {
-		_, errStdout = io.Copy(stdout, stdoutIn)
-	}()
-
-	go func() {
-		_, errStderr = io.Copy(stderr, stderrIn)
-	}()
-
-	err = ffmpegCmd.Wait()
-	if err != nil {
-		log.Fatalf("ffmpegCmd.Run() failed with %s\n", err)
-	}
-
-	if errStdout != nil || errStderr != nil {
-		log.Fatal("failed to capture stdout or stderr\n")
-	}
-
+	return playbackURI, videoMetadata, nil
 }
 
-func GetBestOrLeastResolutionFormat(videoFormats map[string]map[string]string, bestOrLeast string) string {
+func getPlaybackURIContent(playbackURI string, requestHeaders map[string]string) ([]byte, error) {
+	playbackURIContentBytes, err := MakeGetRequest(playbackURI, requestHeaders)
 
-	for formatCode, formatInfo := range videoFormats {
-		if strings.HasPrefix(formatCode, "hls-") {
-			//video format
-			if isBestOrLeast, bestOrLeastAvailable := formatInfo[bestOrLeast]; bestOrLeastAvailable {
-				if isBestOrLeast == "true" {
-					return formatCode
-				}
-			}
+	if err != nil {
+		if playbackURIContentRetryCount+1 < 10 {
+			//retry again for fetching formats
+			playbackURIContentRetryCount++
+			//fmt.Printf("GetVideoFormats: GET request to playbackURI failed... Retrying count : #%d\n", playbackURIContentRetryCount)
+			return getPlaybackURIContent(playbackURI, requestHeaders)
 		}
+		return nil, err
 	}
 
-	return ""
+	return playbackURIContentBytes, nil
 }
 
-//DownloadAudioOrVideo downloads the video for given video format and video url. It also adds metadata to it if needed. FFMPEG path and Output video file name can be customized.
-func DownloadAudioOrVideo(videoURL string, videoID string, vFormat string, userFfmpegPath string, outputFileName string, metadataFlag bool, isDashAV bool) {
-
-	var ffmpegPath string
-
-	if len(strings.TrimSpace(userFfmpegPath)) != 0 {
-		ffmpegPath = userFfmpegPath
-	} else {
-		path, err := exec.LookPath("ffmpeg")
-		if err != nil {
-			log.Fatal("Error in finding command ffmpeg. Please install one and try again. ", err)
-		}
-		ffmpegPath = path
-	}
-
-	currentDirectoryPath, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	videoFormats, videoMetadata, err := GetVideoFormats(videoURL, videoID)
+func getMasterPlaybackURL(playbackURIContentBytes []byte) ([]string, error) {
+	masterPlaybackURLs, err := GetMasterPlaybackURLs(playbackURIContentBytes)
 
 	if err != nil {
-		log.Fatal(fmt.Errorf("Error occurred : %s", err))
+		if masterPlaybackURLRetryCount+1 < 10 {
+			//retry again for fetching formats
+			masterPlaybackURLRetryCount++
+			//fmt.Printf("GetVideoFormats: Retriving masterPlaybackURL failed... Retrying count : #%d\n", masterPlaybackURLRetryCount)
+			return getMasterPlaybackURL(playbackURIContentBytes)
+		}
+		return nil, err
+		//log.Fatal(fmt.Errorf("Error occurred : %s", err))
 	}
+	return masterPlaybackURLs, nil
+}
 
-	if drmProtected, isDrmKeyAvailable := videoMetadata["drmProtected"]; isDrmKeyAvailable {
-		if drmProtected == "true" {
-			fmt.Println("Error: The video is DRM Protected")
-			os.Exit(-1)
-		}
-	}
+func getTempVideoFormats(masterPlaybackURLs []string, requestHeaders map[string]string) (map[string][]map[string]string, map[string][]map[string]string, map[string][]map[string]string, error) {
+	videoFormatsTemp := make(map[string][]map[string]string)
+	videoDashFormatsTemp := make(map[string][]map[string]string)
+	audioDashFormatsTemp := make(map[string][]map[string]string)
 
-	if err := os.Chmod(ffmpegPath, 0555); err != nil {
-		log.Fatal(err)
-	}
+	for _, masterPlaybackURL := range masterPlaybackURLs {
 
-	if isDashAV {
-		format := videoFormats[vFormat]
-		if outputFileName == "" {
-			outputFileName = fmt.Sprintf("%s_%s__DASH_AV.mp4", videoID, strings.Replace(videoMetadata["title"], " ", "_", -1))
-		}
-		outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)
+		if masterPlaybackURL != "" {
 
-		if isPathExists(outputFilePath) {
-			fmt.Printf("File %s already present in %s", outputFileName, currentDirectoryPath)
-			os.Exit(0)
-		}
-		dashFiles, tempDashFileDir := DownloadDashFilesBatch(currentDirectoryPath, videoID, vFormat, format)
-		runFfmpegCommand(ffmpegPath, videoMetadata, "", dashFiles, metadataFlag, outputFileName, true)
-		removeErr := os.RemoveAll(tempDashFileDir)
-		if removeErr != nil {
-			fmt.Println("Error in removing temp directory")
-			os.Exit(-1)
-		} else {
-			fmt.Printf("\nTemp directory %s removed\n", tempDashFileDir)
-			os.Exit(0)
-		}
-	} else {
+			var queryParams string
+			masterPlaybackURLQueryParam := strings.Split(masterPlaybackURL, "?")
 
-		//Check if vFormat fallback is enabled by empty value passed
-		if len(strings.TrimSpace(vFormat)) == 0 {
-			fmt.Println("Missing format flag falling back to best formats for video")
-			vFormat = GetBestOrLeastResolutionFormat(videoFormats, "BEST_RESOLUTION")
-			if len(strings.TrimSpace(vFormat)) != 0 {
-				fmt.Println("Best format for video is, ", videoFormats[vFormat]["RESOLUTION"])
-			} else {
-				vFormat = GetBestOrLeastResolutionFormat(videoFormats, "LEAST_RESOLUTION")
-				fmt.Println("Best formats for the video isn't available falling back to least resolution, ", videoFormats[vFormat]["RESOLUTION"])
-
+			if len(masterPlaybackURLQueryParam) > 1 {
+				queryParams = masterPlaybackURLQueryParam[1]
 			}
-		}
 
-		if videoFormat, isValidFormat := videoFormats[vFormat]; isValidFormat {
+			if strings.Contains(masterPlaybackURL, "m3u8") {
 
-			if streamURL, isStreamURLAvailable := videoFormat["STREAM-URL"]; isStreamURLAvailable {
+				masterPlaybackPageContentsM3u8Bytes, err := MakeGetRequest(masterPlaybackURL, requestHeaders)
 
-				if outputFileName == "" {
-					outputFileName = fmt.Sprintf("%s-%s.mp4", videoID, strings.Replace(videoMetadata["title"], " ", "_", -1))
+				if err != nil {
+
+					if tempVideoFormatsRetryCount+1 < 10 {
+						//retry again for fetching formats
+						tempVideoFormatsRetryCount++
+						//fmt.Printf("GetVideoFormats: GET request to masterPlaybackURL failed... Retrying count : #%d\n", tempVideoFormatsRetryCount)
+						return getTempVideoFormats(masterPlaybackURLs, requestHeaders)
+					}
+
+					return nil, nil, nil, err
 				}
 
-				outputFilePath := filepath.Join(currentDirectoryPath, outputFileName)
+				for fid, formatsList := range ParseM3u8Content(fmt.Sprintf("%s", masterPlaybackPageContentsM3u8Bytes), masterPlaybackURL, queryParams) {
+					videoFormatsTemp[fid] = append(videoFormatsTemp[fid], formatsList)
+				}
+			} else {
 
-				if isPathExists(outputFilePath) {
-					fmt.Printf("File %s already present in %s", outputFileName, currentDirectoryPath)
-					os.Exit(0)
+				masterPlaybackPageContentsMpdBytes, err := MakeGetRequest(masterPlaybackURL, requestHeaders)
+
+				if err != nil {
+
+					if tempVideoFormatsRetryCount+1 < 10 {
+						//retry again for fetching formats
+						tempVideoFormatsRetryCount++
+						//fmt.Printf("GetVideoFormats: GET request to masterPlaybackURL failed... Retrying count : #%d\n", tempVideoFormatsRetryCount)
+						return getTempVideoFormats(masterPlaybackURLs, requestHeaders)
+					}
+
+					return nil, nil, nil, err
 				}
 
-				runFfmpegCommand(ffmpegPath, videoMetadata, streamURL, nil, metadataFlag, outputFileName, false)
-				os.Exit(0)
-			} else {
-				fmt.Println("The STREAM-URL is not available. Please try again")
-				os.Exit(-3)
+				dFormats := GetDashFormats(masterPlaybackPageContentsMpdBytes, masterPlaybackURL)
+
+				for avType, formatsList := range dFormats {
+					for formatCode, formatInfo := range formatsList {
+						if avType == "video" {
+							videoDashFormatsTemp[formatCode] = append(videoDashFormatsTemp[formatCode], formatInfo)
+						} else {
+							audioDashFormatsTemp[formatCode] = append(audioDashFormatsTemp[formatCode], formatInfo)
+						}
+					}
+				}
+
 			}
 
-		} else {
-			fmt.Printf("The specified video format %s is not available. Specify existing format from the list", vFormat)
-			os.Exit(-4)
 		}
+
 	}
 
+	return videoFormatsTemp, audioDashFormatsTemp, videoDashFormatsTemp, nil
+}
+
+func raiseError(errorMsg string) {
+	fmt.Println(errorMsg)
+	os.Exit(-1)
+}
+
+func raiseConversionError(varname, varvalue string) {
+	raiseError(fmt.Sprintf("\nError in converting %s, %s to integer", varname, varvalue))
+}
+
+func isValidPlaylistBounds(playlistItemCount int, playlistStartRange, playlistEndRange string) (int, int, string, bool) {
+
+	var validationMessage strings.Builder
+	isValid := false
+	startRange, startRangeError := strconv.Atoi(playlistStartRange)
+	if startRangeError != nil {
+		raiseConversionError("playlistStartRange", playlistStartRange)
+	}
+	endRange, endRangeError := strconv.Atoi(playlistEndRange)
+	if endRangeError != nil {
+		raiseConversionError("playlistEndRange", playlistEndRange)
+	}
+
+	validationMessage.WriteString("")
+
+	if startRange < 1 {
+		validationMessage.WriteString(fmt.Sprintf("\nInvalid start range %s provided. Should be >= 1", playlistStartRange))
+	}
+
+	if endRange > playlistItemCount {
+		validationMessage.WriteString(fmt.Sprintf("\nInvalid end range %s provided. Should be <= %d", playlistEndRange, playlistItemCount))
+	}
+
+	if startRange > endRange {
+		validationMessage.WriteString(fmt.Sprintf("\nInvalid start range %d provided. Should be <= %d", startRange, endRange))
+	} else if endRange < startRange {
+		validationMessage.WriteString(fmt.Sprintf("\nInvalid end range %d provided. Should be >= %d", endRange, startRange))
+	} else {
+		isValid = true
+	}
+
+	return startRange, endRange, validationMessage.String(), isValid
 }
