@@ -15,8 +15,8 @@ builds:
       - 386
       - arm
 # Archive customization
-archive:
-  format: zip
+archives:
+- format: zip
   name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
   replacements:
     darwin: mac
