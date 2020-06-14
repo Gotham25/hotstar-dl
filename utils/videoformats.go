@@ -45,6 +45,14 @@ func GetVideoFormats(videoURL string, videoID string, meta map[string]string) (m
 		}
 	}
 
+	resultToken, err := getRefreshToken(videoURL)
+	if err != nil {
+		fmt.Printf("Error in retrieving JWT token : %s", err)
+		os.Exit(-1)
+	}
+
+	requestHeaders["X-HS-UserToken"] = resultToken
+
 	playbackURIContentBytes, playbackURIContentError := getPlaybackURIContent(playbackURI, requestHeaders)
 	if playbackURIContentError != nil {
 		return nil, nil, errors.Wrapf(playbackURIContentError, "\nGetVideoFormats: Error occurred in retrieving playbackURIContent\n")
@@ -55,7 +63,12 @@ func GetVideoFormats(videoURL string, videoID string, meta map[string]string) (m
 		return nil, nil, errors.Wrapf(masterPlaybackURLError, "\nGetVideoFormats: Error occurred in retrieving masterPlaybackURLs\n")
 	}
 
+	requestHeaders["Referer"] = videoURL
+	requestHeaders["Origin"] = "https://www.hotstar.com"
+	requestHeaders["Host"] = "hses4.hotstar.com"
+
 	videoFormatsTemp, audioDashFormatsTemp, videoDashFormatsTemp, videoFormatsError := getTempVideoFormats(masterPlaybackURLs, requestHeaders)
+
 	if videoFormatsError != nil {
 		return nil, nil, errors.Wrapf(videoFormatsError, "\nGetVideoFormats: Error occurred in retrieving videoFormats\n")
 	}
@@ -136,8 +149,13 @@ func isPathExists(path string) bool {
 	return !info.IsDir()
 }
 
-func getFfmpegArgs(videoMetadata map[string]string, streamURL string, dashFiles []string, metadataFlag bool, outputFileName string, isDashFile bool) []string {
+func getFfmpegArgs(videoURL string, videoMetadata map[string]string, streamURL string, dashFiles []string, metadataFlag bool, outputFileName string, isDashFile bool) []string {
+
 	ffmpegArgs := make([]string, 0)
+	if !isDashFile {
+		ffmpegArgs = append(ffmpegArgs, "-headers")
+		ffmpegArgs = append(ffmpegArgs, fmt.Sprintf("Referer: %s", videoURL))
+	}
 	ffmpegArgs = append(ffmpegArgs, "-i")
 	if isDashFile {
 		input := "concat:"
@@ -170,11 +188,11 @@ func getFfmpegArgs(videoMetadata map[string]string, streamURL string, dashFiles 
 	return ffmpegArgs
 }
 
-func runFfmpegCommand(ffmpegPath string, videoMetadata map[string]string, streamURL string, dashFiles []string, metadataFlag bool, outputFileName string, isDashFile bool) {
+func runFfmpegCommand(videoURL string, ffmpegPath string, videoMetadata map[string]string, streamURL string, dashFiles []string, metadataFlag bool, outputFileName string, isDashFile bool) {
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 
-	ffmpegArgs := getFfmpegArgs(videoMetadata, streamURL, dashFiles, metadataFlag, outputFileName, isDashFile)
+	ffmpegArgs := getFfmpegArgs(videoURL, videoMetadata, streamURL, dashFiles, metadataFlag, outputFileName, isDashFile)
 
 	ffmpegCmd := exec.Command(ffmpegPath, ffmpegArgs...)
 
@@ -233,7 +251,7 @@ func getBestOrLeastResolutionFormat(videoFormats map[string]map[string]string, b
 	return ""
 }
 
-func downloadDashAudioOrVideo(videoFormats map[string]map[string]string, vFormat string, outputFileName string, videoID string, videoMetadata map[string]string, currentDirectoryPath string, ffmpegPath string, metadataFlag bool) {
+func downloadDashAudioOrVideo(videoURL string, videoFormats map[string]map[string]string, vFormat string, outputFileName string, videoID string, videoMetadata map[string]string, currentDirectoryPath string, ffmpegPath string, metadataFlag bool) {
 	format := videoFormats[vFormat]
 	if outputFileName == "" {
 		outputFileName = fmt.Sprintf("%s_%s__DASH_AV.mp4", videoID, strings.Replace(videoMetadata["title"], " ", "_", -1))
@@ -244,8 +262,15 @@ func downloadDashAudioOrVideo(videoFormats map[string]map[string]string, vFormat
 		fmt.Printf("File %s already present in %s", outputFileName, currentDirectoryPath)
 		os.Exit(0)
 	}
-	dashFiles, tempDashFileDir := DownloadDashFilesBatch(currentDirectoryPath, videoID, vFormat, format)
-	runFfmpegCommand(ffmpegPath, videoMetadata, "", dashFiles, metadataFlag, outputFileName, true)
+
+	requestHeaders := getRequestHeaders()
+
+	requestHeaders["Referer"] = videoURL
+	requestHeaders["Origin"] = "https://www.hotstar.com"
+	requestHeaders["Host"] = "hses4.hotstar.com"
+
+	dashFiles, tempDashFileDir := DownloadDashFilesBatch(currentDirectoryPath, videoID, vFormat, format, requestHeaders)
+	runFfmpegCommand(videoURL, ffmpegPath, videoMetadata, "", dashFiles, metadataFlag, outputFileName, true)
 	removeErr := os.RemoveAll(tempDashFileDir)
 	if removeErr != nil {
 		fmt.Println("Error in removing temp directory")
@@ -256,7 +281,7 @@ func downloadDashAudioOrVideo(videoFormats map[string]map[string]string, vFormat
 	}
 }
 
-func downloadVideo(vFormat string, videoFormats map[string]map[string]string, outputFileName string, videoID string, videoMetadata map[string]string, currentDirectoryPath string, ffmpegPath string, metadataFlag bool) {
+func downloadVideo(videoURL string, vFormat string, videoFormats map[string]map[string]string, outputFileName string, videoID string, videoMetadata map[string]string, currentDirectoryPath string, ffmpegPath string, metadataFlag bool) {
 	//Check if vFormat fallback is enabled by empty value passed
 	if len(strings.TrimSpace(vFormat)) == 0 {
 		fmt.Println("Missing format flag falling back to best formats for video")
@@ -285,7 +310,7 @@ func downloadVideo(vFormat string, videoFormats map[string]map[string]string, ou
 				os.Exit(0)
 			}
 
-			runFfmpegCommand(ffmpegPath, videoMetadata, streamURL, nil, metadataFlag, outputFileName, false)
+			runFfmpegCommand(videoURL, ffmpegPath, videoMetadata, streamURL, nil, metadataFlag, outputFileName, false)
 			os.Exit(0)
 		} else {
 			fmt.Println("The STREAM-URL is not available. Please try again")
@@ -336,11 +361,11 @@ func DownloadAudioOrVideo(videoURL string, videoID string, vFormat string, userF
 	}
 
 	if isDashAV {
-		downloadDashAudioOrVideo(videoFormats, vFormat, outputFileName, videoID, videoMetadata, currentDirectoryPath, ffmpegPath, metadataFlag)
+		downloadDashAudioOrVideo(videoURL, videoFormats, vFormat, outputFileName, videoID, videoMetadata, currentDirectoryPath, ffmpegPath, metadataFlag)
+		fmt.Println("Downloaded DASH audio/video successfully...")
 	} else {
-
-		downloadVideo(vFormat, videoFormats, outputFileName, videoID, videoMetadata, currentDirectoryPath, ffmpegPath, metadataFlag)
-
+		downloadVideo(videoURL, vFormat, videoFormats, outputFileName, videoID, videoMetadata, currentDirectoryPath, ffmpegPath, metadataFlag)
+		fmt.Println("Downloaded video successfully...")
 	}
 
 }

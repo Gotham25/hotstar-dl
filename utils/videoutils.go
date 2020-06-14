@@ -1,12 +1,16 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
+var refreshTokenRetryCount = 0
 var videoURLRetryCount = 0
 var playbackRetryCount = 0
 var playbackURIContentRetryCount = 0
@@ -18,7 +22,19 @@ func getRequestHeaders() map[string]string {
 		"Hotstarauth":     GenerateHotstarAuth(),
 		"X-Country-Code":  "IN",
 		"X-Platform-Code": "JIO",
+		"X-HS-Platform":   "web",
+		"X-HS-AppVersion": "6.72.2",
 		"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.122 Safari/537.36",
+		"Origin":          "https://www.hotstar.com",
+	}
+}
+
+func getRefreshTokenHeaders() map[string]string {
+	return map[string]string{
+		"hotstarauth":  GenerateHotstarAuth(),
+		"userIdentity": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ1bV9hY2Nlc3MiLCJleHAiOjE1OTAzMDE5OTYsImlhdCI6MTU4OTY5NzE5NiwiaXNzIjoiVFMiLCJzdWIiOiJ7XCJoSWRcIjpcIjU5YjkxMTBkMDM2ZjQ3M2U5OTBhNzFiNDAwMDM5MzRkXCIsXCJwSWRcIjpcImVjNmRmY2Y1ZTJhYzRhYWJhZjNjOTBlY2I0YTY5MTVlXCIsXCJuYW1lXCI6XCJHdWVzdCBVc2VyXCIsXCJpcFwiOlwiMjIzLjIyNi4yOS4yMjdcIixcImNvdW50cnlDb2RlXCI6XCJpblwiLFwiY3VzdG9tZXJUeXBlXCI6XCJudVwiLFwidHlwZVwiOlwiZGV2aWNlXCIsXCJpc0VtYWlsVmVyaWZpZWRcIjpmYWxzZSxcImlzUGhvbmVWZXJpZmllZFwiOmZhbHNlLFwiZGV2aWNlSWRcIjpcImExMTg1MTFhLTJmYjktNDhmOS04MGM5LWY1OTlkMjdlYTZmNlwiLFwicHJvZmlsZVwiOlwiQURVTFRcIixcInZlcnNpb25cIjpcInYyXCIsXCJzdWJzY3JpcHRpb25zXCI6e1wiaW5cIjp7fX0sXCJpc3N1ZWRBdFwiOjE1ODk2OTcxOTY2NzJ9IiwidmVyc2lvbiI6IjFfMCJ9.bkx7DodQSFohwmzqf8RmKOr3tuORgVFEh_qbtdqzeVA",
+		"Origin":       "https://www.hotstar.com",
+		"deviceId":     uuid.New().String(),
 	}
 }
 
@@ -58,6 +74,33 @@ func getAggregatedFormats(videoFormatsTemp, audioDashFormatsTemp, videoDashForma
 	}
 
 	return totalFormats
+}
+
+func getRefreshToken(videoURL string) (string, error) {
+	var result map[string]interface{}
+	var refreshTokenHeaders = getRefreshTokenHeaders()
+	refreshTokenHeaders["Referer"] = videoURL
+
+	refreshTokenURL := "https://api.hotstar.com/in/aadhar/v2/web/in/user/refresh-token"
+	refreshTokenURLContentBytes, err := MakeGetRequest(refreshTokenURL, refreshTokenHeaders)
+
+	if err != nil {
+		if refreshTokenRetryCount < 10 {
+
+			//retry again for fetching JWT token
+			refreshTokenRetryCount++
+
+			//fmt.Printf("getRefreshToken: GET request to videoURL failed... Retrying count : #%d\n", refreshTokenRetryCount)
+			return getRefreshToken(videoURL)
+		}
+	}
+
+	json.Unmarshal(refreshTokenURLContentBytes, &result)
+
+	description := result["description"].(map[string]interface{})
+	userIdentity := description["userIdentity"].(string)
+
+	return userIdentity, nil
 }
 
 func getVideoURL(videoURL string, requestHeaders map[string]string) (string, error) {

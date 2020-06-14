@@ -97,6 +97,17 @@ func PopulateMetaDataMapWithMetadata(metaDataMap map[string]string, metadata map
 	}
 }
 
+//GetPlaybackURI3 gets the playback uri v2 from videoID
+func GetPlaybackURI3(videoID string, uuid string) string {
+	var playbackURI3 strings.Builder
+	playbackURI3.WriteString(fmt.Sprintf("https://api.hotstar.com/play/v1/playback/content/%s?", videoID))
+	playbackURI3.WriteString(fmt.Sprintf("%s=%s&", "device-id", uuid))
+	playbackURI3.WriteString(fmt.Sprintf("%s=%s&", "desired-config", "encryption:plain;ladder:phone,tv;package:hls,dash"))
+	playbackURI3.WriteString(fmt.Sprintf("%s=%s&", "os-name", "Windows"))
+	playbackURI3.WriteString(fmt.Sprintf("%s=%s", "os-version", "10"))
+	return playbackURI3.String()
+}
+
 //GetPlaybackURI2 gets the playback uri v2 from videoID
 func GetPlaybackURI2(videoID string, uuid string) string {
 	var playbackURI2 strings.Builder
@@ -168,7 +179,9 @@ func GetPlaybackURI(videoURLPageContents string, videoURL string, videoID string
 		playbackURI2.WriteString(fmt.Sprintf("%s=%s&", "osName", "Windows"))
 		playbackURI2.WriteString(fmt.Sprintf("%s=%s", "osVersion", "10")) */
 
-		return /* playbackURI2.String() */ GetPlaybackURI2(videoID, uuid), metaDataMap, nil
+		// return /* playbackURI2.String() */ GetPlaybackURI2(videoID, uuid), metaDataMap, nil
+
+		return /* playbackURI2.String() */ GetPlaybackURI3(videoID, uuid), metaDataMap, nil
 
 	}
 
